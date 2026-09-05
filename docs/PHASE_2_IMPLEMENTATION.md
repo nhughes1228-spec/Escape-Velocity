@@ -2,6 +2,8 @@
 
 Status: domain, settlement and save foundation implemented on the Phase 2 branch; broad upgrade UI integration is intentionally paused for Astra review. This document records what is actually in the repository, while [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
 
+**Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes reveal four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records evidence, precise corrections and the next gate. The implementation inventory below describes the checkpoint's intended facilities; it does not certify those failure paths as complete. No runtime or balance changes were made by this review.
+
 ## Implemented checkpoint scope
 
 - Phase 1 P0 corrections: shared altitude-anchor headroom and camera mapping, responsive redraw, analytic pad-support handling, integration and trace work budgets, non-advancing-time detection, and explicit `limit` diagnostics.
