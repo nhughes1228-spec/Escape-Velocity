@@ -24,6 +24,7 @@ export type FlightEventType = 'burnout' | FlightOutcome;
 export interface FlightEvent {
   type: FlightEventType;
   timeS: number;
+  reason?: string;
 }
 
 export interface SimulationEnvironment {
@@ -38,6 +39,8 @@ export interface SimulationOptions {
   maxTimeS: number;
   fuelEpsilonKg: number;
   traceIntervalS: number;
+  maxIntegrationSteps: number;
+  maxTraceSamples: number;
   balanceVersion?: string;
   modelVersion?: string;
   collectTrace?: boolean;

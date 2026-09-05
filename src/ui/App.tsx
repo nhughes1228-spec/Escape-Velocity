@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import { openingBalance } from '../config/opening';
 import { createInitialGameState, gameReducer } from '../game/reducer';
+import { createGameplaySeed } from '../game/variance';
 import { usePlayback } from '../presentation/clock';
 import { sampleTrace } from '../presentation/trace';
 import type { FlightOutcome, TraceSample } from '../simulation/types';
@@ -24,9 +25,10 @@ function outcomeLabel(outcome: FlightOutcome): string {
   }
 }
 
-function phaseLabel(status: 'ready' | 'ignition' | 'playing' | 'result', sample: TraceSample | null): string {
+function phaseLabel(status: 'ready' | 'ignition' | 'playing' | 'replay' | 'result', sample: TraceSample | null): string {
   if (status === 'ready') return 'Ready on pad';
   if (status === 'ignition') return 'Ignition sequence';
+  if (status === 'replay') return 'Replay · no reward';
   if (status === 'result') return sample?.phase === 'result' ? 'Flight complete' : 'Result ready';
   if (sample?.phase === 'coast') return 'Coasting';
   if (sample?.phase === 'pad') return 'Holding on pad';
@@ -38,10 +40,19 @@ export function App() {
   const [reducedMotion, setReducedMotion] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
-  const playback = usePlayback(state.activeLaunch, (runId) => dispatch({ type: 'settle', runId }));
+  const playback = usePlayback(state.activeLaunch, (runId, playbackId) => dispatch({
+    type: state.activeLaunch?.mode === 'replay' ? 'completeReplay' : 'settleNewLaunch',
+    runId,
+    playbackId,
+  }));
   useEffect(() => {
     if (!playback.isFreshRun && state.status === 'ignition' && state.activeLaunch && playback.elapsedS >= state.activeLaunch.vehicle.ignitionDelayS) {
-      dispatch({ type: 'presentationPhase', phase: 'playing' });
+      dispatch({
+        type: 'presentationPhase',
+        runId: state.activeLaunch.runId,
+        playbackId: state.activeLaunch.playbackId,
+        phase: 'playing',
+      });
     }
   }, [playback.elapsedS, playback.isFreshRun, state.activeLaunch, state.status]);
   const displayedResult = state.activeLaunch?.result ?? state.lastResult;
@@ -65,7 +76,7 @@ export function App() {
     phase: 'pad',
   };
   const visiblePhase = phaseLabel(displayedStatus, displayedSample);
-  const isActive = state.status === 'ignition' || state.status === 'playing';
+  const isActive = state.status === 'ignition' || state.status === 'playing' || state.status === 'replay';
   const statusText = state.status === 'result' && state.lastResult
     ? `${outcomeLabel(state.lastResult.outcome)}. Maximum altitude ${formatAltitude(state.lastResult.maximumAltitudeM)}.`
     : state.status === 'ready'
@@ -101,6 +112,7 @@ export function App() {
             trace={displayedResult?.trace ?? []}
             current={canvasSample}
             recordM={state.recordM}
+            nominalPeakM={state.activeLaunch?.nominalPeakM ?? state.lastResult?.maximumAltitudeM ?? 0}
             simulationTimeS={playback.simulationTimeS}
             showFullTrace={!isActive}
             reducedMotion={reducedMotion}
@@ -156,7 +168,7 @@ export function App() {
         <button
           className={`launch-button${isActive ? ' launch-button-active' : ''}`}
           type="button"
-          onClick={() => dispatch({ type: 'launch' })}
+          onClick={() => dispatch({ type: 'reserveNewLaunch', seed: createGameplaySeed() })}
           disabled={isActive}
           aria-describedby="status-message"
           aria-busy={isActive}

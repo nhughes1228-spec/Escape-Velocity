@@ -48,9 +48,6 @@ export function deriveVehicle(levels: RocketLevels, balance: OpeningBalance = op
     thrustN: base.thrustN * (1 + engine.thrustPerLevel * levels.engine),
     exhaustVelocityMps: base.exhaustVelocityMps * (1 + engine.exhaustPerLevel * levels.engine),
     dragAreaM2: base.dragAreaM2 / (1 + airframe.dragDivisorPerLevel * levels.airframe),
-    ignitionDelayS: Math.max(
-      ignition.minimumDelayS,
-      ignition.initialDelayS - ignition.reductionSPerLevel * levels.ignition,
-    ),
+    ignitionDelayS: ignition.delaysS[levels.ignition],
   };
 }

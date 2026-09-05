@@ -23,10 +23,10 @@ export interface PlaybackFrame {
   isFreshRun: boolean;
 }
 
-export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runId: number) => void): PlaybackFrame {
+export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runId: number, playbackId: number) => void): PlaybackFrame {
   const [elapsedS, setElapsedS] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [clockRunId, setClockRunId] = useState<number | null>(null);
+  const [clockPlaybackId, setClockPlaybackId] = useState<number | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -34,12 +34,12 @@ export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runI
     if (!activeLaunch) {
       setElapsedS(0);
       setPaused(false);
-      setClockRunId(null);
+      setClockPlaybackId(null);
       return;
     }
 
-    const { runId, result, vehicle } = activeLaunch;
-    setClockRunId(runId);
+    const { runId, playbackId, result, vehicle } = activeLaunch;
+    setClockPlaybackId(playbackId);
     const totalDurationS = vehicle.ignitionDelayS + result.terminalTimeS;
     let elapsed = 0;
     let previousTimeMs: number | null = null;
@@ -66,7 +66,7 @@ export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runI
         setElapsedS(elapsed);
         if (!completed && elapsed >= totalDurationS) {
           completed = true;
-          onCompleteRef.current(runId);
+          onCompleteRef.current(runId, playbackId);
           return;
         }
       }
@@ -94,15 +94,15 @@ export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runI
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('escape-velocity:test-tick', onTestTick);
     };
-  }, [activeLaunch?.runId, activeLaunch?.result, activeLaunch?.vehicle]);
+  }, [activeLaunch?.runId, activeLaunch?.playbackId, activeLaunch?.result, activeLaunch?.vehicle]);
 
   const ignitionDelayS = activeLaunch?.vehicle.ignitionDelayS ?? 0;
   const result = activeLaunch?.result;
-  const activeRunId = activeLaunch?.runId ?? null;
+  const activePlaybackId = activeLaunch?.playbackId ?? null;
   // Keep this comparison render-pure. In StrictMode a render can be invoked
   // twice before effects commit, so mutating a ref here would leak stale time
   // from the previous run into a replay.
-  const isFreshRun = clockRunId !== activeRunId;
+  const isFreshRun = clockPlaybackId !== activePlaybackId;
   const effectiveElapsedS = isFreshRun ? 0 : elapsedS;
   const simulationTimeS = result ? Math.max(0, Math.min(result.terminalTimeS, effectiveElapsedS - ignitionDelayS)) : 0;
   return {

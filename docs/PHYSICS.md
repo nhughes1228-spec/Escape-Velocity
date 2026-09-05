@@ -1,8 +1,8 @@
-# Physics specification — vertical-v1
+# Physics specification — vertical-v1.1
 
-> Phase 2 review (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime remains Phase 1 at review commit `87cbc30`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+> Phase 2 checkpoint (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime is `vertical-v1.1` on the Phase 2 domain/save checkpoint branch; the accepted public `main` deployment remains the Phase 1 surface until Astra review and UI integration. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged nominal formulas/fixtures remain valid.
 
-Status: normative for the first playable simulation. SI units throughout: kg, m, s, N, m/s, kg/s, kg/m³. This is an Earth-like toy model for interacting upgrades, not a flight planning tool. [BALANCE](BALANCE.md) owns parameters; this document owns equations and event semantics.
+Status: normative for the first playable simulation and Phase 2 seeded recipes. SI units throughout: kg, m, s, N, m/s, kg/s, kg/m³. This is an Earth-like toy model for interacting upgrades, not a flight planning tool. [BALANCE](BALANCE.md) owns parameters; this document owns equations and event semantics.
 
 ## Assumptions and state
 
@@ -52,11 +52,11 @@ The midpoint evaluation uses the same powered T for the entire partial step, inc
 
 ## Pad contact and launch termination
 
-The pad supplies a normal force when `h=0, v=0` and thrust cannot lift current mass. Continue consuming fuel on the pad. If powered, find the time at which `dryMass+f` reaches `T/g0`; split a step there, stay at h=v=0 up to that point and then integrate the remaining interval freely. If g0=0, positive thrust lifts immediately. If thrust never exceeds dry weight before burnout, terminate `noLiftoff` at burnout. A zero-thrust rocket returns `noLiftoff` immediately instead of waiting forever. Negative altitude must not become a hidden tunnel under the pad.
+The pad supplies a normal force when `h=0, v=0` and thrust cannot lift current mass. Continue consuming fuel on the pad. If powered, find the time at which `dryMass+f` reaches `T/g0`; split a step there, stay at h=v=0 up to that point and then integrate the remaining interval freely. If g0=0, positive thrust lifts immediately. If thrust never exceeds dry weight before burnout, terminate `noLiftoff` at burnout. A zero-thrust rocket returns `noLiftoff` immediately instead of waiting forever. Negative altitude must not become a hidden tunnel under the pad. The runtime treats pad support analytically and bounds all integration and trace work with configured `maxIntegrationSteps` and `maxTraceSamples`. If a cap is reached, it returns `limit` at the cap with a diagnostic reason; it does not invent burnout, liftoff or apogee.
 
 After liftoff, detect the first positive-to-nonpositive velocity crossing. For the crossing step use `aBar=(vNext-v)/d`, `tau=-v/aBar`, clamped to [0,d]. Approximate peak `hPeak=h+v*tau+0.5*aBar*tau²`; time is `t+tau`. Terminate `apogee`, even in an unusual vehicle that loses upward speed before burnout. Do not wait to descend. Retain terminal fuel with consumption only through tau. If this event coincides with burnout, record both in a defined order (burnout then apogee). Emit at most one terminal result.
 
-Defensive impact detection terminates at a downward ground crossing after liftoff; interpolate to h=0. An ordinary upright launch ends at apogee first. `invalid` covers nonfinite intermediate state; `limit` covers 1,200 simulated seconds without another terminal event. These last two are diagnostic failures with no Credits, records or unlocks. Never silently present a duration cap as an apogee. User abort is an application action with no settlement.
+Defensive impact detection terminates at a downward ground crossing after liftoff; interpolate to h=0. An ordinary upright launch ends at apogee first. `invalid` covers nonfinite intermediate state; `limit` covers the configured duration or work budget without another terminal event. These last two are diagnostic failures with no Credits, records or unlocks. Never silently present a duration cap as an apogee. User abort is an application action with no settlement.
 
 Only `apogee` results qualify for altitude income and milestones in the opening. `noLiftoff`/`impact` pay zero; launches cost zero. UI explains recovery/configuration choices. Safety caps are guardrails, not balance targets; every supported opening build must reach apogee well inside them.
 
@@ -66,7 +66,7 @@ Return model version, balance version, copied vehicle spec, outcome, maximum alt
 
 ## Determinism and stability
 
-No wall clock, random numbers, DOM, storage or mutable configuration in the solver. Same inputs and versions reproduce the same result in one runtime; cross-runtime agreement is tolerance-based, not promised bitwise. Store versions with fixtures/results. Visual interpolation and particle randomness cannot affect awards.
+No wall clock, random numbers, DOM, storage or mutable configuration in the solver. Gameplay applies the versioned engine condition before entering the solver; the solver itself remains deterministic. Same inputs and versions reproduce the same result in one runtime; cross-runtime agreement is tolerance-based, not promised bitwise. Store versions with fixtures/results. Visual interpolation and particle randomness cannot affect awards.
 
 Halve dt to 1/240 for convergence tests. Across the supported 0–8 opening physical levels require altitude difference ≤ max(0.1 m, 0.1% of fine result) and event-time difference ≤ 0.02 s. If these fail, fix numerical resolution/model envelope rather than widen tolerances blindly. Always maintain positive mass, nonnegative fuel and finite state. New high-thrust/low-mass families require a new convergence audit: fixed dt is not universally stable for quadratic drag.
 
@@ -74,6 +74,6 @@ Analytic tests: vacuum ballistic apogee `h0+v0²/(2g)` and time `v0/g`; zero-gra
 
 ## Expansion to orbit
 
-Keep vertical-v1 as a stable module and fixture set. Later introduce an explicit `orbital-v1` model with planet-centered position/velocity vectors and thrust direction. Use `altitude=|r|-R`, gravity vector `-mu*r/|r|³`, and vector drag opposing air-relative velocity. Reuse vehicle derivation, balance IDs and result envelopes; do not fake horizontal motion by rotating the current altitude display.
+Keep `vertical-v1.1` as a stable module and fixture set. Later introduce an explicit `orbital-v1` model with planet-centered position/velocity vectors and thrust direction. Use `altitude=|r|-R`, gravity vector `-mu*r/|r|³`, and vector drag opposing air-relative velocity. Reuse vehicle derivation, balance IDs and result envelopes; do not fake horizontal motion by rotating the current altitude display.
 
 At that phase specify surface initialization, guidance, integration accuracy, atmosphere reference frame, event detection and mission horizon together. Bound orbit requires negative specific energy and periapsis above the chosen atmosphere boundary; altitude alone is insufficient. Orbit does not terminate at the vertical solver's first apogee. Numerical energy/angular-momentum tests and orbital event fixtures are required before shipping. No vector engine, staging framework or N-body solver is needed in Phase 1.

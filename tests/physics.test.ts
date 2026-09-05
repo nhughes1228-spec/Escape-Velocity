@@ -107,6 +107,66 @@ describe('vertical-v1 solver', () => {
     expect(limit.events.at(-1)?.type).toBe('limit');
   });
 
+  it('bounds supported-pad time and trace work by the requested limits', () => {
+    const shortPadOptions = { ...options, maxTimeS: 0.1 };
+    for (const thrustN of [70, 90]) {
+      const result = simulateVertical({ ...starter, thrustN }, environment, shortPadOptions);
+      expect(result.outcome).toBe('limit');
+      expect(result.terminalTimeS).toBeCloseTo(0.1, 12);
+      expect(result.terminalFuelKg).toBeGreaterThan(0);
+      expect(result.trace.every((sample) => sample.phase === 'pad' || sample.phase === 'result')).toBe(true);
+    }
+
+    const supportedBurnTimeS = 2 / (70 / 400);
+    const exactCap = simulateVertical(
+      { ...starter, thrustN: 70 },
+      environment,
+      { ...options, maxTimeS: supportedBurnTimeS },
+    );
+    expect(exactCap.outcome).toBe('noLiftoff');
+    expect(exactCap.terminalTimeS).toBeCloseTo(supportedBurnTimeS, 12);
+    expect(exactCap.events.map((event) => event.type)).toEqual(['burnout', 'noLiftoff']);
+
+    const delayedLift = simulateVertical({ ...starter, thrustN: 90 }, environment, { ...options, maxTimeS: 20 });
+    expect(delayedLift.outcome).toBe('apogee');
+    expect(delayedLift.trace[0]?.phase).toBe('pad');
+    expect(delayedLift.trace.some((sample) => sample.phase === 'poweredAscent')).toBe(true);
+
+    const traceOff = simulateVertical({ ...starter, thrustN: 90 }, environment, {
+      ...options,
+      traceIntervalS: Number.MIN_VALUE,
+      collectTrace: false,
+      maxTraceSamples: 1,
+    });
+    expect(traceOff.outcome).toBe('apogee');
+    expect(traceOff.trace).toEqual([]);
+
+    const traceBudget = simulateVertical(starter, environment, {
+      ...options,
+      traceIntervalS: 0.001,
+      maxTraceSamples: 4,
+    });
+    expect(traceBudget.outcome).toBe('limit');
+    expect(traceBudget.trace.length).toBeLessThanOrEqual(4);
+    expect(traceBudget.events.at(-1)?.reason).toMatch(/trace sample budget/);
+
+    const terminalTraceBudget = simulateVertical(starter, environment, {
+      ...options,
+      traceIntervalS: 100,
+      maxTraceSamples: 1,
+    });
+    expect(terminalTraceBudget.outcome).toBe('limit');
+    expect(terminalTraceBudget.trace).toHaveLength(1);
+    expect(terminalTraceBudget.events.at(-1)?.reason).toMatch(/terminal sample/);
+
+    const stepBudget = simulateVertical(starter, environment, {
+      ...options,
+      maxIntegrationSteps: 1,
+    });
+    expect(stepBudget.outcome).toBe('limit');
+    expect(stepBudget.events.at(-1)?.reason).toMatch(/integration step budget/);
+  });
+
   it('covers the full opening envelope and remains convergent', () => {
     let builds = 0;
     let negativeEdges = 0;

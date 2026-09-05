@@ -35,24 +35,26 @@ test('launches, shows burnout/coast, settles a record, and replays', async ({ pa
   });
   await expect(page.locator('.status-chip').getByText('Coasting', { exact: true })).toBeVisible();
   await page.evaluate(() => {
-    window.__EV_TEST_CLOCK__!.nowMs += 3742;
+    window.__EV_TEST_CLOCK__!.nowMs += 4000;
     window.dispatchEvent(new Event('escape-velocity:test-tick'));
   });
   await expect(page.locator('.status-chip').getByText('Flight complete', { exact: true })).toBeVisible();
-  await expect(page.locator('.flight-readout > div').nth(0).getByText('160 m', { exact: true })).toBeVisible();
-  await expect(page.locator('.result-primary').getByText('160 m', { exact: true })).toBeVisible();
+  const firstAltitude = await page.locator('.flight-readout > div').nth(0).locator('strong').textContent();
+  expect(firstAltitude).toMatch(/^(157|158|159|160|161|162|163) m$/);
+  await expect(page.locator('.result-primary').locator('strong')).toHaveText(firstAltitude!);
   await expect(page.getByRole('button', { name: 'Launch again' })).toBeEnabled();
 
   await page.getByRole('button', { name: 'Launch again' }).click();
   await expect(page.locator('.status-chip').getByText('Ignition sequence', { exact: true })).toBeVisible();
   await page.evaluate(() => window.dispatchEvent(new Event('escape-velocity:test-tick')));
   await page.evaluate(() => {
-    window.__EV_TEST_CLOCK__!.nowMs += 10242;
+    window.__EV_TEST_CLOCK__!.nowMs += 11000;
     window.dispatchEvent(new Event('escape-velocity:test-tick'));
   });
   await expect(page.locator('.status-chip').getByText('Flight complete', { exact: true })).toBeVisible();
-  await expect(page.locator('.flight-readout > div').nth(0).getByText('160 m', { exact: true })).toBeVisible();
-  await expect(page.locator('.result-primary').getByText('160 m', { exact: true })).toBeVisible();
+  const secondAltitude = await page.locator('.flight-readout > div').nth(0).locator('strong').textContent();
+  expect(secondAltitude).toMatch(/^(157|158|159|160|161|162|163) m$/);
+  await expect(page.locator('.result-primary').locator('strong')).toHaveText(secondAltitude!);
   await expect(page.getByText('No flights logged yet.')).toHaveCount(0);
   await page.screenshot({ path: 'output/playwright/phase-1-result.png', fullPage: true });
   expect(consoleErrors).toEqual([]);
@@ -91,7 +93,7 @@ test('pauses presentation time while hidden and resumes without a catch-up jump'
   await tick(0);
   await tick(5000);
   await expect(page.locator('.status-chip').getByText('Coasting', { exact: true })).toBeVisible();
-  await tick(3742);
+  await tick(4000);
   await expect(page.locator('.status-chip').getByText('Flight complete', { exact: true })).toBeVisible();
 });
 

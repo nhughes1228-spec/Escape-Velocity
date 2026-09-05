@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { altitudeToCanvasY, canvasYToAltitude, createAltitudeScale } from '../src/presentation/altitudeScale';
+import { altitudeToCanvasY, cameraMaxAltitudeM, canvasYToAltitude, createAltitudeScale } from '../src/presentation/altitudeScale';
 import { sampleTrace } from '../src/presentation/trace';
 
 describe('presentation trace sampling', () => {
@@ -15,14 +15,21 @@ describe('presentation trace sampling', () => {
 
 describe('altitude canvas mapping', () => {
   it('uses one ruler coordinate for telemetry and the visual altitude anchor', () => {
-    const scale = createAltitudeScale(380, 250);
-    const altitudeM = 160;
-    const y = altitudeToCanvasY(altitudeM, scale);
+    for (const heightPx of [310, 380]) {
+      const scale = createAltitudeScale(heightPx, 2000);
+      for (const altitudeM of [0, 160, 500, 1000, 1700]) {
+        const y = altitudeToCanvasY(altitudeM, scale);
+        expect(y).toBeGreaterThanOrEqual(scale.topAnchorY);
+        expect(y).toBeLessThanOrEqual(scale.groundY);
+        expect(canvasYToAltitude(y, scale)).toBeCloseTo(altitudeM, 10);
+      }
+      expect(altitudeToCanvasY(scale.maxAltitudeM, scale)).toBe(scale.topAnchorY);
+    }
+  });
 
-    expect(y).toBeGreaterThan(scale.skyTopY);
-    expect(y).toBeLessThan(scale.groundY);
-    expect(canvasYToAltitude(y, scale)).toBeCloseTo(altitudeM, 10);
-    expect(altitudeToCanvasY(0, scale)).toBe(scale.groundY);
-    expect(altitudeToCanvasY(scale.maxAltitudeM, scale)).toBe(scale.skyTopY);
+  it('freezes camera ranges in rounded bands from nominal capability and record', () => {
+    expect(cameraMaxAltitudeM(0, 160.170311)).toBe(300);
+    expect(cameraMaxAltitudeM(1000, 1400)).toBe(1600);
+    expect(cameraMaxAltitudeM(0, 1647.878595)).toBe(1900);
   });
 });

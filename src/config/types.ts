@@ -10,6 +10,8 @@ export interface SimulationConfig {
   maxTimeS: number;
   fuelEpsilonKg: number;
   traceIntervalS: number;
+  maxIntegrationSteps: number;
+  maxTraceSamples: number;
 }
 
 export interface VehicleBaseConfig {
@@ -46,14 +48,18 @@ export interface AirframeUpgradeConfig {
 export interface IgnitionUpgradeConfig {
   cap: number;
   baseCost: number;
-  initialDelayS: number;
-  reductionSPerLevel: number;
-  minimumDelayS: number;
+  delaysS: number[];
+}
+
+export interface VarianceConfig {
+  varianceVersion: 'engine-variation-v1';
+  prngVersion: 'mulberry32-v1';
+  amplitude: number;
 }
 
 export interface OpeningBalance {
-  balanceVersion: string;
-  modelVersion: string;
+  balanceVersion: 'opening-v2';
+  modelVersion: 'vertical-v1.1';
   environment: EnvironmentConfig;
   simulation: SimulationConfig;
   vehicle: VehicleBaseConfig;
@@ -65,5 +71,6 @@ export interface OpeningBalance {
   };
   costCurve: { linear: number; quadratic: number };
   income: { baseCredits: number; sqrtAltitudeCoefficient: number };
+  variance: VarianceConfig;
   milestones: Array<{ id: string; altitudeM: number; credits: number }>;
 }

@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (public).
 
-**Current state:** Phase 1 first playable launch and deployment correction. The fixed starter rocket can be launched, observed through ignition, powered ascent, burnout and coast, then replayed with a session record. Phase 2 adds Credits, upgrades and saves.
+**Current state:** Phase 2 domain/save checkpoint. The public `main` deployment remains the accepted Phase 1 first-playable build; this branch adds the specified Credits, upgrade, seeded-recipe, settlement and local-save foundations, but intentionally stops before Phase 2 upgrade-card UI integration pending Astra review.
 
 ## Project record
 
@@ -14,13 +14,14 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Software architecture](docs/ARCHITECTURE.md)
 - [Roadmap and current state](docs/ROADMAP.md)
 - [Phase 1 audit and Phase 2 implementation specification](docs/PHASE_2_SPEC.md)
+- [Phase 2 implementation checkpoint](docs/PHASE_2_IMPLEMENTATION.md)
 - [Instructions for every agent](AGENTS.md)
 
 ## Play online
 
 [Open the live Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-This is the live GitHub Pages URL. The public repository's deployment workflow enables Pages and publishes the `main` branch at this repository-subpath URL using **GitHub Actions**. The deployment and a first launch were verified in a browser on 2026-09-05.
+This is the accepted live Phase 1 URL. The public repository's deployment workflow enables Pages and publishes `main` at this repository-subpath URL using **GitHub Actions**. The deployment and a first launch were verified in a browser on 2026-09-05. The Phase 2 checkpoint branch is not yet the public playable Phase 2 release.
 
 ## Development
 
