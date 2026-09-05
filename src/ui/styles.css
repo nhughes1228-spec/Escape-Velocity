@@ -107,6 +107,13 @@ h2 { margin-bottom: 0; font-size: 1.16rem; letter-spacing: -0.025em; }
 .control-panel { margin-top: 14px; padding: 20px 22px; }
 .control-copy { min-width: 0; }
 .status-message { margin: 7px 0 0; color: #9eb7b8; font-size: 0.87rem; }
+.ignition-feedback { max-width: 430px; margin-top: 15px; padding: 11px 13px; border: 1px solid rgba(255, 198, 109, 0.26); border-radius: 12px; background: rgba(79, 53, 28, 0.24); }
+.ignition-feedback-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.ignition-feedback-heading .readout-label { margin-bottom: 0; color: #e7bb7b; }
+.ignition-feedback-heading strong { color: #ffe2ab; font-size: 0.85rem; white-space: nowrap; }
+.ignition-progress { height: 7px; margin-top: 9px; overflow: hidden; border-radius: 999px; background: rgba(255, 220, 163, 0.14); }
+.ignition-progress > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ffc66d, #ff8e61); transition: width 100ms linear; }
+.ignition-feedback > p { margin: 8px 0 0; color: #c9b28f; font-size: 0.74rem; }
 .launch-button {
   display: inline-flex;
   align-items: center;
@@ -127,6 +134,7 @@ h2 { margin-bottom: 0; font-size: 1.16rem; letter-spacing: -0.025em; }
 }
 .launch-button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
 .launch-button:disabled { cursor: wait; opacity: 0.47; }
+.launch-button-active { color: #221a0e; background: linear-gradient(135deg, #f7c878, #ff916c); }
 .launch-button:focus-visible, input:focus-visible { outline: 3px solid #ffe0a3; outline-offset: 3px; }
 .launch-icon { font-size: 1.35rem; line-height: 0; }
 

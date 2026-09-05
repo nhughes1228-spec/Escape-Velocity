@@ -16,6 +16,14 @@ The starter launch takes about 1.5 seconds to ignite and 8.74 seconds to apogee.
 
 All four cards exist in the opening but advanced diagnostic detail is optional and unlocked when useful. Engine means stronger push with greater fuel flow and engine mass. Fuel Tank means more fuel and a heavier tank. Airframe means less structure mass and less drag. Ignition means a shorter preflight wait, with no change to flight physics.
 
+## Phase 2 requirements from Phase 1 playtest
+
+These are requirements for the next design and implementation review, not Phase 1 behavior. Phase 1 intentionally keeps the level-zero starter fixed and does not expose Credits, purchases or save/load.
+
+Phase 2 must make the incremental loop playable: **launch → reach apogee → earn Credits → purchase an upgrade → improve the rocket → launch again**. A completed valid flight must settle its reward from the authoritative result, and a purchased Engine, Fuel Tank, Airframe or Ignition level must produce a visible, understandable consequence on the next launch. The loop must preserve free retries and must not require a separate fuel-purchase step.
+
+Identical configurations must have modest natural performance variance rather than exactly repeating one altitude. Initially target approximately ±2–3% around the configuration's expected result, while keeping upgrade effects clearly larger than ordinary launch-to-launch noise and avoiding catastrophic failures. Variance should perturb an underlying physical input such as engine performance, fuel efficiency or atmospheric conditions before the authoritative simulation runs; it must not randomize the final altitude after simulation. Each gameplay launch needs a generated and stored seed so its result can be replayed, while tests can supply fixed seeds and remain deterministic. A future technology may reduce this spread, but that system is not part of this requirement's implementation.
+
 ## Rocket systems and experimentation
 
 Purchased levels are permanent development; initially every purchased level is equipped. The opening family is bounded and audited across every supported combination. Before introducing combinations that can make a vehicle unable to lift, add free configuration selection up to owned levels, a plain-language preflight warning and a safe revert action. Never strand a player behind an irreversible purchase. Do not promise that adding fuel always improves altitude outside the audited opening envelope.

@@ -51,6 +51,12 @@ export function App() {
   }, [displayedResult, playback.sample, state.activeLaunch]);
   const displayedStatus = !playback.isFreshRun && state.activeLaunch && state.status === 'ignition' &&
     playback.elapsedS >= state.activeLaunch.vehicle.ignitionDelayS ? 'playing' : state.status;
+  const ignitionActive = state.status === 'ignition' ? state.activeLaunch : null;
+  const ignitionDelayS = ignitionActive?.vehicle.ignitionDelayS ?? 0;
+  const ignitionProgress = ignitionActive && ignitionDelayS > 0
+    ? Math.min(1, Math.max(0, playback.elapsedS / ignitionDelayS))
+    : 0;
+  const ignitionRemainingS = Math.max(0, ignitionDelayS - playback.elapsedS);
   const canvasSample: TraceSample = displayedSample ?? {
     timeS: 0,
     altitudeM: 0,
@@ -64,6 +70,8 @@ export function App() {
     ? `${outcomeLabel(state.lastResult.outcome)}. Maximum altitude ${formatAltitude(state.lastResult.maximumAltitudeM)}.`
     : state.status === 'ready'
       ? 'Your starter rocket is fueled and ready.'
+      : state.status === 'ignition'
+        ? `Ignition sequence active. Liftoff in ${ignitionRemainingS.toFixed(1)} s.`
       : `${visiblePhase}.`;
 
   return (
@@ -97,6 +105,8 @@ export function App() {
             showFullTrace={!isActive}
             reducedMotion={reducedMotion}
             status={displayedStatus}
+            ignitionElapsedS={playback.elapsedS}
+            ignitionProgress={ignitionProgress}
           />
           {playback.paused && isActive && <p className="pause-note">Flight paused while this tab is hidden.</p>}
         </div>
@@ -119,18 +129,40 @@ export function App() {
       <section className="control-panel" aria-labelledby="control-heading">
         <div className="control-copy">
           <p className="eyebrow">CONTROL DESK</p>
-          <h2 id="control-heading">{state.status === 'result' ? 'Ready for another test?' : 'Make the next test count.'}</h2>
+          <h2 id="control-heading">
+            {state.status === 'result' ? 'Ready for another test?' : state.status === 'ignition' ? 'Ignition underway' : 'Make the next test count.'}
+          </h2>
           <p id="status-message" className="status-message">{statusText}</p>
+          {ignitionActive && (
+            <div className="ignition-feedback" role="status" aria-live="polite">
+              <div className="ignition-feedback-heading">
+                <span className="readout-label">Ignition progress</span>
+                <strong>{ignitionProgress >= 1 ? 'Liftoff' : `${ignitionRemainingS.toFixed(1)} s to liftoff`}</strong>
+              </div>
+              <div
+                className="ignition-progress"
+                role="progressbar"
+                aria-label="Ignition progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(ignitionProgress * 100)}
+              >
+                <span style={{ width: `${Math.round(ignitionProgress * 100)}%` }} />
+              </div>
+              <p>Engine systems are coming online.</p>
+            </div>
+          )}
         </div>
         <button
-          className="launch-button"
+          className={`launch-button${isActive ? ' launch-button-active' : ''}`}
           type="button"
           onClick={() => dispatch({ type: 'launch' })}
           disabled={isActive}
           aria-describedby="status-message"
+          aria-busy={isActive}
         >
-          <span className="launch-icon" aria-hidden="true">↑</span>
-          {state.status === 'result' ? 'Launch again' : 'Launch'}
+          <span className="launch-icon" aria-hidden="true">{isActive ? '◌' : '↑'}</span>
+          {state.status === 'result' ? 'Launch again' : state.status === 'ignition' ? 'Ignition sequence' : state.status === 'playing' ? 'In flight' : 'Launch'}
         </button>
       </section>
 

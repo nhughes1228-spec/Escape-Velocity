@@ -9,3 +9,9 @@ Original prompt: Finish the Phase 1 GitHub Pages publishing workflow after the r
 - No workflow files were removed or bypassed. Resume by refreshing the credential with the `workflow` scope, then push the Phase 1 branch and verify the Pages deployment and live URL.
 - Merged PR #1 into `main` as `43e90e8`; the first Pages run reached `Configure Pages` but failed because the site was not enabled. The follow-up adds `enablement: true` to `actions/configure-pages@v5` and is ready for the next PR.
 - Merged PR #2 into `main` as `e56cff1`, configured Pages for GitHub Actions, reran workflow `33990000879` successfully, and verified the live URL in a browser through the first launch and 160 m result with no console errors. Phase 1 publishing is complete; Phase 2 remains unstarted.
+
+## Phase 1 playtest correction
+
+- Added immediate ignition feedback: stateful control copy, disabled in-progress button, countdown/progress bar, and reduced-motion-safe pad/engine activity while preserving the configured ignition duration.
+- Centralized the canvas altitude mapping so the numerical telemetry, ruler, trace, current-altitude guide and rocket fin-tip anchor share one authoritative scale; added a mapping invariant test and ignition browser assertions.
+- Recorded the Phase 2 economy loop and seeded ±2–3% physical-input variance requirements in the roadmap, design, architecture, balance and Phase 1 handoff documents. No economy, upgrades, variance, milestones or saves were implemented.

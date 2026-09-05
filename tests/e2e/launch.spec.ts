@@ -17,6 +17,12 @@ test('launches, shows burnout/coast, settles a record, and replays', async ({ pa
 
   await page.getByRole('button', { name: 'Launch', exact: true }).click();
   await expect(page.locator('.status-chip').getByText('Ignition sequence', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Ignition underway' })).toBeVisible();
+  const ignitionProgress = page.getByRole('progressbar', { name: 'Ignition progress' });
+  await expect(ignitionProgress).toBeVisible();
+  await expect(ignitionProgress).toHaveAttribute('aria-valuenow', '0');
+  await expect(page.getByRole('button', { name: 'Ignition sequence', exact: true })).toBeDisabled();
+  await page.screenshot({ path: 'output/playwright/phase-1-ignition.png', fullPage: true });
   await page.evaluate(() => window.dispatchEvent(new Event('escape-velocity:test-tick')));
   await page.evaluate(() => {
     window.__EV_TEST_CLOCK__!.nowMs += 1500;

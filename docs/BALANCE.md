@@ -24,6 +24,10 @@ Status: measured opening candidate, not human-playtested. Machine-readable value
 
 This deliberately inefficient small experimental rocket creates a short, readable first flight. It is not a specification for a real engine. Initial thrust-to-weight ratio is about 1.63. At dt=1/120, the modeled first apogee is **160.170311 m**, reached **8.741557 simulated seconds** after ignition. Click to result is about **10.24 foreground seconds** at 1×; result review is player-controlled.
 
+## Phase 2 playtest requirements (not implemented)
+
+The fixed starter and exact fixture above remain the Phase 1 baseline. Phase 2 must add a small, seeded launch-to-launch performance spread: initially target approximately ±2–3% around an expected configuration result. Calibrate the distribution against upgrade deltas so ordinary variance is noticeable but does not obscure progression or introduce catastrophic opening failures. Apply variation to a documented physical input before simulation (for example engine performance, fuel efficiency or atmosphere), never as a post-simulation altitude multiplier. Store the launch seed for replay/debugging and use explicit seeds in tests; do not add a random final-altitude adjustment. Any future variance-reduction technology requires a separate design decision.
+
 ## Bounded opening upgrades
 
 Levels are integers starting at zero. `e,f,a,i` mean Engine, Fuel Tank, Airframe, Ignition. Physical caps are 8 each; ignition cap is 4. Purchased levels are automatically equipped in this family. Formulas:
