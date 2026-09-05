@@ -14,6 +14,9 @@ const DEFAULT_BALANCE_VERSION = 'unknown-balance';
 const DEFAULT_MODEL_VERSION = 'vertical-v1.1';
 const DEFAULT_TRACE_INTERVAL_S = 0.1;
 const DEFAULT_MAX_TRACE_SAMPLES = 20000;
+export const MAX_TRUSTED_INTEGRATION_STEPS = 300_000;
+export const MAX_TRUSTED_TRACE_SAMPLES = 20_000;
+export const MAX_TRUSTED_TRACE_WORK = 20_000;
 const EPSILON = 1e-9;
 
 function finite(value: number): boolean {
@@ -130,6 +133,8 @@ interface Collector {
   readonly enabled: boolean;
   readonly samples: TraceSample[];
   readonly maxSamples: number;
+  readonly maxWork: number;
+  workUsed: number;
   nextSampleTime: number;
   add(sample: TraceSample): boolean;
   sampleStep(state: VerticalState): boolean;
@@ -137,13 +142,23 @@ interface Collector {
   advanceSchedulePast(timeS: number): boolean;
 }
 
+function scheduledBoundaryCount(nextSampleTime: number, endTime: number, intervalS: number): number {
+  if (nextSampleTime > endTime) return 0;
+  const ratio = (endTime - nextSampleTime) / intervalS;
+  if (!finite(ratio)) return Number.POSITIVE_INFINITY;
+  return Math.floor(ratio) + 1;
+}
+
 function createCollector(enabled: boolean, intervalS: number, maxSamples: number, initial: TraceSample): Collector {
   const samples = enabled ? [initial] : [];
-  const sampleLimit = Math.max(1, maxSamples);
+  const sampleLimit = Math.min(MAX_TRUSTED_TRACE_SAMPLES, Math.max(1, maxSamples));
+  const maxWork = Math.min(MAX_TRUSTED_TRACE_WORK, sampleLimit);
   return {
     enabled,
     samples,
     maxSamples: sampleLimit,
+    maxWork,
+    workUsed: 0,
     nextSampleTime: intervalS,
     add(sample) {
       if (!enabled) return true;
@@ -158,15 +173,25 @@ function createCollector(enabled: boolean, intervalS: number, maxSamples: number
     },
     sampleStep(state) {
       if (!enabled) return true;
-      while (this.nextSampleTime <= state.timeS + EPSILON) {
+      const due = scheduledBoundaryCount(this.nextSampleTime, state.timeS + EPSILON, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
         if (!this.add({ ...state, phase: state.phase })) return false;
-        this.nextSampleTime += intervalS;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
       }
       return true;
     },
     addPadSamples(endTimeS, initialFuel, q) {
       if (!enabled) return this.advanceSchedulePast(endTimeS);
-      while (this.nextSampleTime < endTimeS - EPSILON) {
+      const padSampleEnd = endTimeS - EPSILON;
+      const due = scheduledBoundaryCount(this.nextSampleTime, padSampleEnd, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
         if (!this.add({
           timeS: this.nextSampleTime,
           altitudeM: 0,
@@ -174,21 +199,23 @@ function createCollector(enabled: boolean, intervalS: number, maxSamples: number
           fuelKg: Math.max(0, initialFuel - q * this.nextSampleTime),
           phase: 'pad',
         })) return false;
-        this.nextSampleTime += intervalS;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
       }
       return this.advanceSchedulePast(endTimeS);
     },
     advanceSchedulePast(timeS) {
-      if (!enabled) {
-        const nextBoundary = Math.floor((timeS + EPSILON) / intervalS) + 1;
-        this.nextSampleTime = nextBoundary * intervalS;
-        return true;
-      }
-      while (this.nextSampleTime <= timeS + EPSILON) {
-        // A trace interval can be adversarially small. Count skipped
-        // boundaries against the same finite trace budget as emitted samples.
-        if (this.nextSampleTime === Number.POSITIVE_INFINITY || this.samples.length >= sampleLimit) return false;
-        this.nextSampleTime += intervalS;
+      if (!enabled) return true;
+      const due = scheduledBoundaryCount(this.nextSampleTime, timeS + EPSILON, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
       }
       return true;
     },
@@ -213,7 +240,9 @@ function resultFor(
 ): FlightResult {
   const terminalSampleAdded = collector.add(terminalTrace);
   const finalOutcome = terminalSampleAdded ? outcome : 'limit';
-  if (!terminalSampleAdded) appendEvent(events, 'limit', terminalTrace.timeS, 'trace sample budget exhausted at terminal sample');
+  if (!terminalSampleAdded && !events.some((event) => event.type === 'limit')) {
+    appendEvent(events, 'limit', terminalTrace.timeS, 'trace sample budget exhausted at terminal sample');
+  }
   return {
     balanceVersion: options.balanceVersion ?? DEFAULT_BALANCE_VERSION,
     modelVersion: options.modelVersion ?? DEFAULT_MODEL_VERSION,
@@ -248,7 +277,7 @@ function invalidResult(vehicle: VehicleSpec, options: SimulationOptions): Flight
     timeS: 0,
     altitudeM: 0,
     velocityMps: 0,
-    fuelKg: finite(vehicle.fuelMassKg) && vehicle.fuelMassKg >= 0 ? vehicle.fuelMassKg : 0,
+    fuelKg: finite(rawVehicle.fuelMassKg) && rawVehicle.fuelMassKg >= 0 ? rawVehicle.fuelMassKg : 0,
     phase: 'result',
   });
   const events: FlightEvent[] = [];
@@ -303,6 +332,7 @@ export function simulateVertical(
   let burnoutTimeS: number | null = null;
   let maximumAltitudeM = 0;
   let integrationSteps = 0;
+  const integrationBudget = Math.min(MAX_TRUSTED_INTEGRATION_STEPS, options.maxIntegrationSteps);
 
   const limitResult = (atTimeS: number, atAltitudeM: number, atVelocityMps: number, atFuelKg: number, reason: string): FlightResult => {
     appendEvent(events, 'limit', atTimeS, reason);
@@ -363,7 +393,7 @@ export function simulateVertical(
   }
 
   while (timeS < options.maxTimeS) {
-    if (integrationSteps >= options.maxIntegrationSteps) {
+    if (integrationSteps >= integrationBudget) {
       return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'integration step budget exhausted');
     }
     integrationSteps += 1;

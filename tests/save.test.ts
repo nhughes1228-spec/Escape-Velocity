@@ -26,6 +26,22 @@ class FailingStorage {
   }
 }
 
+class SelectiveReadStorage {
+  constructor(
+    readonly base: MemoryStorage,
+    readonly deniedKeys: Set<string>,
+  ) {}
+
+  getItem(key: string): string | null {
+    if (this.deniedKeys.has(key)) throw new Error(`Read denied for ${key}.`);
+    return this.base.getItem(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.base.setItem(key, value);
+  }
+}
+
 function settleNewLaunch(store: GameStore): void {
   expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
   const active = store.getState().activeLaunch;
@@ -112,6 +128,73 @@ describe('phase 2 save contract', () => {
     recovering.dispose();
   });
 
+  it('does not overwrite protected primary bytes during an automatic mutation', () => {
+    const storage = new MemoryStorage();
+    const protectedRaw = '{"gameId":"escape-velocity","schemaVersion":999,"credits":"keep me"}';
+    storage.values.set(SAVE_KEY, protectedRaw);
+    const store = createGameStore({ storage, seedSource: () => 0 });
+
+    expect(store.getPersistence().kind).toBe('recovery');
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(true);
+    expect(storage.getItem(SAVE_KEY)).toBe(protectedRaw);
+    expect(store.exportSave()).toBe(protectedRaw);
+    expect(store.getPersistence().kind).toBe('recovery');
+    store.dispose();
+  });
+
+  it('keeps a valid primary usable when the backup read is denied', () => {
+    const base = new MemoryStorage();
+    const source = createGameStore({ storage: base, seedSource: () => 0 });
+    settleNewLaunch(source);
+    source.dispose();
+    const guarded = new SelectiveReadStorage(base, new Set([SAVE_BACKUP_KEY]));
+    const store = createGameStore({ storage: guarded, seedSource: () => 1 });
+
+    expect(store.getState().credits).toBe(19);
+    expect(store.recoverBackup()).toBe(false);
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(true);
+    expect(parseSave(base.getItem(SAVE_KEY)!).settings.motion).toBe('reduced');
+    expect(store.getPersistence().kind).toBe('saved');
+    store.dispose();
+  });
+
+  it('does not write after a primary read failure', () => {
+    const base = new MemoryStorage();
+    const source = createGameStore({ storage: base, seedSource: () => 0 });
+    settleNewLaunch(source);
+    source.dispose();
+    const originalRaw = base.getItem(SAVE_KEY);
+    const guarded = new SelectiveReadStorage(base, new Set([SAVE_KEY]));
+    const store = createGameStore({ storage: guarded, seedSource: () => 1 });
+
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(false);
+    expect(base.getItem(SAVE_KEY)).toBe(originalRaw);
+    expect(store.getPersistence().message).toMatch(/safely|read/);
+    guarded.deniedKeys.delete(SAVE_KEY);
+    expect(store.dispatch({ type: 'setMotion', motion: 'full' })).toBe(false);
+    expect(base.getItem(SAVE_KEY)).toBe(originalRaw);
+    expect(store.getPersistence().kind).toBe('conflict');
+    store.dispose();
+  });
+
+  it('keeps a valid backup as an explicit recovery option when primary is missing', () => {
+    const storage = new MemoryStorage();
+    const source = createGameStore({ storage, seedSource: () => 0 });
+    settleNewLaunch(source);
+    source.dispose();
+    storage.values.delete(SAVE_KEY);
+    const store = createGameStore({ storage, seedSource: () => 1 });
+
+    expect(store.getPersistence().kind).toBe('recovery');
+    expect(store.getPersistence().backupAvailable).toBe(true);
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(true);
+    expect(storage.getItem(SAVE_KEY)).toBeNull();
+    expect(store.recoverBackup()).toBe(true);
+    expect(store.getState().lastLaunch?.status).toBe('interrupted');
+    expect(store.getState().settings.motion).toBe('system');
+    store.dispose();
+  });
+
   it('rejects corrupt, future and oversized save input before mounting it', () => {
     const storage = new MemoryStorage();
     const store = createGameStore({ storage, seedSource: () => 0 });
@@ -149,6 +232,91 @@ describe('phase 2 save contract', () => {
     expect(store.dispatch({ type: 'settleNewLaunch', runId: active.runId, playbackId: active.playbackId })).toBe(true);
     expect(store.getState().credits).toBe(19);
     expect(parseSave(store.exportSave()).progress.credits).toBe(19);
+    store.dispose();
+  });
+
+  it('rejects stale callbacks after reset and after controller disposal', () => {
+    const storage = new MemoryStorage();
+    const store = createGameStore({ storage, seedSource: () => 0 });
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const old = store.getState().activeLaunch!;
+    expect(store.dispatch({ type: 'markInterrupted' })).toBe(true);
+    expect(store.reset(true)).toBe(true);
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const current = store.getState().activeLaunch!;
+    expect(current.playbackId).not.toBe(old.playbackId);
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: old.runId, playbackId: old.playbackId })).toBe(false);
+    expect(store.getState().credits).toBe(0);
+    store.dispose();
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: current.runId, playbackId: current.playbackId })).toBe(false);
+  });
+
+  it('keeps playback identities monotonic through backup recovery', () => {
+    const storage = new MemoryStorage();
+    const source = createGameStore({ storage, seedSource: () => 0 });
+    settleNewLaunch(source);
+    source.dispose();
+
+    const store = createGameStore({ storage, seedSource: () => 1 });
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const old = store.getState().activeLaunch!;
+    expect(store.dispatch({ type: 'markInterrupted' })).toBe(true);
+    expect(store.recoverBackup()).toBe(true);
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const current = store.getState().activeLaunch!;
+    expect(current.playbackId).toBeGreaterThan(old.playbackId);
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: old.runId, playbackId: old.playbackId })).toBe(false);
+    expect(store.getState().credits).toBe(19);
+    store.dispose();
+  });
+
+  it('rejects a stale replay completion after an explicit import', () => {
+    const storage = new MemoryStorage();
+    const store = createGameStore({ storage, seedSource: () => 0 });
+    settleNewLaunch(store);
+    const exported = store.exportSave();
+    expect(store.dispatch({ type: 'startReplay' })).toBe(true);
+    const oldReplay = store.getState().activeLaunch!;
+    expect(store.dispatch({ type: 'stopReplay' })).toBe(true);
+    expect(store.reset(true)).toBe(true);
+    expect(store.importSave(exported, true)).toBe(true);
+    expect(store.dispatch({ type: 'startReplay' })).toBe(true);
+    const currentReplay = store.getState().activeLaunch!;
+
+    expect(store.dispatch({ type: 'completeReplay', runId: oldReplay.runId, playbackId: oldReplay.playbackId })).toBe(false);
+    expect(store.getState().status).toBe('replay');
+    expect(store.dispatch({ type: 'completeReplay', runId: currentReplay.runId, playbackId: currentReplay.playbackId })).toBe(true);
+    expect(store.getState().credits).toBe(19);
+    store.dispose();
+  });
+
+  it('protects authoritative nested snapshots from caller mutation', () => {
+    const store = createGameStore({ storage: new MemoryStorage(), seedSource: () => 0 });
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const snapshot = store.getState();
+    snapshot.activeLaunch!.result.maximumAltitudeM = 100000;
+    snapshot.activeLaunch!.result.vehicle.thrustN = 1;
+    snapshot.lastLaunch!.recipe.effectiveVehicle.thrustN = 1;
+    const active = store.getState().activeLaunch!;
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: active.runId, playbackId: active.playbackId })).toBe(true);
+    expect(store.getState().credits).toBe(19);
+    expect(store.getState().recordM).toBeLessThan(100000);
+    store.dispose();
+  });
+
+  it('rejects revision overflow without publishing a state change', () => {
+    const storage = new MemoryStorage();
+    const source = createGameStore({ storage });
+    const raw = JSON.parse(source.exportSave()) as { revision: number };
+    source.dispose();
+    raw.revision = Number.MAX_SAFE_INTEGER;
+    storage.values.set(SAVE_KEY, JSON.stringify(raw));
+    const store = createGameStore({ storage });
+
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(false);
+    expect(store.getState().settings.motion).toBe('system');
+    expect(parseSave(storage.getItem(SAVE_KEY)!).revision).toBe(Number.MAX_SAFE_INTEGER);
+    expect(store.getPersistence().kind).toBe('error');
     store.dispose();
   });
 

@@ -2,7 +2,7 @@
 
 Status: domain, settlement and save foundation implemented on the Phase 2 branch; broad upgrade UI integration is intentionally paused for Astra review. This document records what is actually in the repository, while [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
 
-**Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes reveal four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records evidence, precise corrections and the next gate. The implementation inventory below describes the checkpoint's intended facilities; it does not certify those failure paths as complete. No runtime or balance changes were made by this review.
+**Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes revealed four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records the evidence. The correction branch now addresses those four boundaries with focused regression coverage; this remains a pre-UI focused-gate handoff until Astra reviews the correction commit. No balance tuning or normal-flight physics change was made.
 
 ## Implemented checkpoint scope
 
@@ -14,7 +14,14 @@ Status: domain, settlement and save foundation implemented on the Phase 2 branch
 - Save contract: `escape-velocity.save` with best-effort `escape-velocity.save.backup`, schema/balance validation, recipe/summary correlation checks, backup recovery, import/export, reset, interrupted reload reconciliation and storage-failure behavior.
 - `scripts/balance-report.ts` now imports production economy, variance and launch helpers. The generated report is a 729-build nominal/seeded envelope audit plus no-grant Phase 2 pacing data; dormant milestone configuration is not used for Credits.
 
-The existing React screen remains the accepted Phase 1 surface during this checkpoint. It has not yet been wired to display Credits, upgrade cards, Settings import/export or the secondary replay control. That is deliberate: Astra review occurs after this foundation and before the broad UI work prescribed by Phase 2 specification step J5.
+## Focused checkpoint corrections
+
+- Storage now distinguishes empty, valid, protected-invalid and unreadable primary/backup entries. Automatic mutations never overwrite protected or unreadable bytes; primary and backup reads are independent, explicit recovery/replacement remains available, and a valid primary survives a failed backup read.
+- Trace scheduling counts every due boundary as bounded work, clamps untrusted requested budgets to trusted ceilings, detects non-advancing arithmetic, skips disabled-trace scheduling, handles null input defensively and emits at most one terminal `limit` event.
+- Playback IDs are monotonic for the controller lifetime, are not restored from saves, and are rejected after reset/import/recovery or controller disposal. Reservation admission is checked before seed acquisition.
+- Store state returned to presentation is a defensive snapshot. Save validation and revision-overflow checks complete before authoritative state publication; invalid transitions are rejected separately from valid transitions whose storage write fails.
+
+The existing React screen remains the accepted Phase 1 surface during this checkpoint. It has not yet been wired to display Credits, upgrade cards, Settings import/export or the secondary replay control. That is deliberate: focused Astra review occurs after these corrections and before the broad UI work prescribed by Phase 2 specification step J5.
 
 ## Verification at checkpoint
 

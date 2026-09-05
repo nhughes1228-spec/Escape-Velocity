@@ -98,6 +98,10 @@ describe('vertical-v1 solver', () => {
     expect(invalid.outcome).toBe('invalid');
     expect(invalid.events).toEqual([{ type: 'invalid', timeS: 0 }]);
 
+    const nullVehicle = simulateVertical(null as unknown as VehicleSpec, environment, options);
+    expect(nullVehicle.outcome).toBe('invalid');
+    expect(nullVehicle.events).toEqual([{ type: 'invalid', timeS: 0 }]);
+
     const limit = simulateVertical(
       { ...starter, dryMassKg: 1, fuelMassKg: 1, thrustN: 10, dragAreaM2: 0 },
       { gravityMps2: 0, radiusM: 6371000, densityKgM3: 0, scaleHeightM: 8500 },
@@ -157,7 +161,8 @@ describe('vertical-v1 solver', () => {
     });
     expect(terminalTraceBudget.outcome).toBe('limit');
     expect(terminalTraceBudget.trace).toHaveLength(1);
-    expect(terminalTraceBudget.events.at(-1)?.reason).toMatch(/terminal sample/);
+    expect(terminalTraceBudget.events.filter((event) => event.type === 'limit')).toHaveLength(1);
+    expect(terminalTraceBudget.events.at(-1)?.reason).toMatch(/trace sample budget/);
 
     const stepBudget = simulateVertical(starter, environment, {
       ...options,
@@ -165,6 +170,28 @@ describe('vertical-v1 solver', () => {
     });
     expect(stepBudget.outcome).toBe('limit');
     expect(stepBudget.events.at(-1)?.reason).toMatch(/integration step budget/);
+
+    for (const thrustN of [starter.thrustN, 70]) {
+      const pathological = simulateVertical({ ...starter, thrustN }, environment, {
+        ...options,
+        maxTimeS: 0.1,
+        maxIntegrationSteps: 2,
+        maxTraceSamples: 2,
+        traceIntervalS: 1e-300,
+      });
+      expect(pathological.outcome).toBe('limit');
+      expect(pathological.terminalTimeS).toBeLessThanOrEqual(0.1);
+      expect(pathological.trace.length).toBeLessThanOrEqual(2);
+      expect(pathological.events.filter((event) => event.type === 'limit')).toHaveLength(1);
+    }
+
+    const hugeRequestedBudgets = simulateVertical(starter, environment, {
+      ...options,
+      maxIntegrationSteps: Number.MAX_SAFE_INTEGER,
+      maxTraceSamples: Number.MAX_SAFE_INTEGER,
+      collectTrace: false,
+    });
+    expect(hugeRequestedBudgets.outcome).toBe('apogee');
   });
 
   it('covers the full opening envelope and remains convergent', () => {

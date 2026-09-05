@@ -52,11 +52,59 @@ export interface GameState {
   lastLaunch: LastLaunchRecord | null;
 }
 
+function cloneFlightResult(result: FlightResult | null): FlightResult | null {
+  if (!result) return null;
+  return {
+    ...result,
+    vehicle: { ...result.vehicle },
+    events: result.events.map((event) => ({ ...event })),
+    trace: result.trace.map((sample) => ({ ...sample })),
+  };
+}
+
+function cloneLaunchRecord(record: LastLaunchRecord | null): LastLaunchRecord | null {
+  if (!record) return null;
+  return {
+    ...record,
+    recipe: {
+      ...record.recipe,
+      levels: { ...record.recipe.levels },
+      nominalVehicle: { ...record.recipe.nominalVehicle },
+      effectiveVehicle: { ...record.recipe.effectiveVehicle },
+      environment: { ...record.recipe.environment },
+      simulation: { ...record.recipe.simulation },
+    },
+    summary: record.summary ? { ...record.summary } : null,
+  };
+}
+
+/**
+ * Return a defensive snapshot for presentation and external callers. The
+ * store keeps its own authoritative graph private; in particular, a caller
+ * cannot mutate a historical result or recipe between reservation and
+ * settlement.
+ */
+export function cloneGameState(state: GameState): GameState {
+  return {
+    ...state,
+    levels: { ...state.levels },
+    settings: { ...state.settings },
+    activeLaunch: state.activeLaunch ? {
+      ...state.activeLaunch,
+      levels: { ...state.activeLaunch.levels },
+      vehicle: { ...state.activeLaunch.vehicle },
+      result: cloneFlightResult(state.activeLaunch.result)!,
+    } : null,
+    lastResult: cloneFlightResult(state.lastResult),
+    lastLaunch: cloneLaunchRecord(state.lastLaunch),
+  };
+}
+
 export type GameAction =
-  | { type: 'reserveNewLaunch'; seed: number }
+  | { type: 'reserveNewLaunch'; seed: number; playbackId?: number }
   | { type: 'presentationPhase'; runId: number; playbackId: number; phase: 'playing' }
   | { type: 'settleNewLaunch'; runId: number; playbackId: number }
-  | { type: 'startReplay' }
+  | { type: 'startReplay'; playbackId?: number }
   | { type: 'completeReplay'; runId: number; playbackId: number }
   | { type: 'stopReplay' }
   | { type: 'markInterrupted' }
@@ -81,24 +129,33 @@ export function createInitialGameState(): GameState {
   };
 }
 
-function reserveNewLaunch(state: GameState, seed: number): GameState {
-  if (state.status !== 'ready' && state.status !== 'result') return state;
+export function canReserveNewLaunch(state: GameState): boolean {
+  return state.status === 'ready' || state.status === 'result';
+}
+
+export function canStartReplay(state: GameState): boolean {
+  return !state.activeLaunch && state.lastLaunch !== null;
+}
+
+function reserveNewLaunch(state: GameState, seed: number, requestedPlaybackId = state.nextPlaybackId): GameState {
+  if (!canReserveNewLaunch(state)) return state;
   if (!Number.isSafeInteger(state.nextRunId) || !Number.isSafeInteger(state.launchesStarted) ||
       state.nextRunId < 1 || state.nextRunId >= Number.MAX_SAFE_INTEGER || state.launchesStarted < 0 || state.launchesStarted >= Number.MAX_SAFE_INTEGER) {
     throw new RangeError('Launch counters are not safe to increment.');
   }
-  if (!Number.isSafeInteger(state.nextPlaybackId) || state.nextPlaybackId < 1 || state.nextPlaybackId >= Number.MAX_SAFE_INTEGER) {
+  if (!Number.isSafeInteger(requestedPlaybackId) || requestedPlaybackId < 1 || requestedPlaybackId >= Number.MAX_SAFE_INTEGER) {
     throw new RangeError('Playback counters are not safe to increment.');
   }
   const prepared = prepareLaunch(state.levels, seed, openingBalance);
   const runId = state.nextRunId;
+  const nextPlaybackId = Math.max(state.nextPlaybackId, requestedPlaybackId + 1);
   const lastLaunch: LastLaunchRecord = { runId, status: 'started', recipe: prepared.recipe, summary: null };
   return {
     ...state,
     status: 'ignition',
     activeLaunch: {
       runId,
-      playbackId: state.nextPlaybackId,
+      playbackId: requestedPlaybackId,
       mode: 'new',
       levels: { ...prepared.recipe.levels },
       vehicle: { ...prepared.recipe.effectiveVehicle },
@@ -107,7 +164,7 @@ function reserveNewLaunch(state: GameState, seed: number): GameState {
     },
     launchesStarted: state.launchesStarted + 1,
     nextRunId: runId + 1,
-    nextPlaybackId: state.nextPlaybackId + 1,
+    nextPlaybackId,
     lastLaunch,
   };
 }
@@ -145,29 +202,30 @@ function settleNewLaunch(state: GameState, runId: number, playbackId: number): G
   };
 }
 
-function startReplay(state: GameState): GameState {
-  if (state.activeLaunch || !state.lastLaunch) return state;
-  if (!Number.isSafeInteger(state.nextPlaybackId) || state.nextPlaybackId < 1 || state.nextPlaybackId >= Number.MAX_SAFE_INTEGER) return state;
-  const result = simulateLaunchRecipe(state.lastLaunch.recipe, true, openingBalance);
-  const nominalResult = simulateVertical(state.lastLaunch.recipe.nominalVehicle, state.lastLaunch.recipe.environment, {
-    ...state.lastLaunch.recipe.simulation,
-    balanceVersion: state.lastLaunch.recipe.balanceVersion,
-    modelVersion: state.lastLaunch.recipe.modelVersion,
+function startReplay(state: GameState, requestedPlaybackId = state.nextPlaybackId): GameState {
+  const lastLaunch = state.lastLaunch;
+  if (!canStartReplay(state) || !lastLaunch) return state;
+  if (!Number.isSafeInteger(requestedPlaybackId) || requestedPlaybackId < 1 || requestedPlaybackId >= Number.MAX_SAFE_INTEGER) return state;
+  const result = simulateLaunchRecipe(lastLaunch.recipe, true, openingBalance);
+  const nominalResult = simulateVertical(lastLaunch.recipe.nominalVehicle, lastLaunch.recipe.environment, {
+    ...lastLaunch.recipe.simulation,
+    balanceVersion: lastLaunch.recipe.balanceVersion,
+    modelVersion: lastLaunch.recipe.modelVersion,
     collectTrace: false,
   });
   return {
     ...state,
     status: 'replay',
     activeLaunch: {
-      runId: state.lastLaunch.runId,
-      playbackId: state.nextPlaybackId,
+      runId: lastLaunch.runId,
+      playbackId: requestedPlaybackId,
       mode: 'replay',
-      levels: { ...state.lastLaunch.recipe.levels },
-      vehicle: { ...state.lastLaunch.recipe.effectiveVehicle },
+      levels: { ...lastLaunch.recipe.levels },
+      vehicle: { ...lastLaunch.recipe.effectiveVehicle },
       nominalPeakM: nominalResult.maximumAltitudeM,
       result,
     },
-    nextPlaybackId: state.nextPlaybackId + 1,
+    nextPlaybackId: Math.max(state.nextPlaybackId, requestedPlaybackId + 1),
   };
 }
 
@@ -193,7 +251,7 @@ function buyUpgrade(state: GameState, kind: UpgradeKind): GameState {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'reserveNewLaunch':
-      return reserveNewLaunch(state, action.seed);
+      return reserveNewLaunch(state, action.seed, action.playbackId);
     case 'presentationPhase':
       return state.status === 'ignition' && state.activeLaunch?.mode === 'new' &&
         state.activeLaunch.runId === action.runId && state.activeLaunch.playbackId === action.playbackId
@@ -202,7 +260,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'settleNewLaunch':
       return settleNewLaunch(state, action.runId, action.playbackId);
     case 'startReplay':
-      return startReplay(state);
+      return startReplay(state, action.playbackId);
     case 'completeReplay':
       return completeReplay(state, action.runId, action.playbackId);
     case 'stopReplay':
