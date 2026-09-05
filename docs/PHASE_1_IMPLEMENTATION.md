@@ -12,7 +12,7 @@ The canvas draws the illustrative rocket, simulated trace, height ruler and reco
 
 Commit `6aa0a1e` built successfully at the host root but emitted absolute `/assets/...` URLs. When that `dist` directory was mounted at the GitHub Pages repository path `/Escape-Velocity/`, the HTML loaded with an empty `#root`, both JavaScript/CSS requests returned 404, and Chromium reported failed resource loads. This reproduces the reported white screen. Opening `dist/index.html` directly via `file://` is also unsupported because module assets need an HTTP origin.
 
-The correction adds `npm run build:pages` with Vite base `/Escape-Velocity/`, a Pages deployment workflow on `main`, a subpath E2E check, and a static boot fallback. A React error boundary covers failures after the bundle has loaded. The intended playable URL is [https://nhughes1228-spec.github.io/Escape-Velocity/](https://nhughes1228-spec.github.io/Escape-Velocity/); the repository is now public, so it becomes live after Pages is enabled with GitHub Actions as the source and the workflow runs successfully.
+The correction adds `npm run build:pages` with Vite base `/Escape-Velocity/`, a Pages deployment workflow on `main`, a subpath E2E check, and a static boot fallback. A React error boundary covers failures after the bundle has loaded. The intended playable URL is [https://nhughes1228-spec.github.io/Escape-Velocity/](https://nhughes1228-spec.github.io/Escape-Velocity/); the repository is now public, and the workflow enables Pages with GitHub Actions before publishing the first successful build.
 
 ## Boundaries and exclusions
 
