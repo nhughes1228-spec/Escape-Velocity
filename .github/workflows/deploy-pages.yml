@@ -31,6 +31,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Build and verify repository-subpath bundle
         run: npm run test:e2e:pages
       - name: Upload Pages artifact
