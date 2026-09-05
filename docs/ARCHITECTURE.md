@@ -45,6 +45,12 @@ Local development and the ordinary production preview use the host-root Vite bas
 
 Use discriminated unions for status and outcomes, not scattered booleans. Define `FlightOutcome = 'apogee' | 'noLiftoff' | 'impact' | 'invalid' | 'limit'`; application cancellation discards the active flight. Distinguish `idle`, `ignition`, `playing`, `result`. Use `model: 'vertical-v1'` on result envelopes so orbital results can later be added without abusing altitude fields. Do not introduce an abstract plugin registry.
 
+## Phase 2 playtest requirements
+
+Phase 2 adds the incremental loop without weakening the simulation boundary: a valid apogee result settles Credits, the player buys one bounded upgrade, and the next launch snapshots the improved vehicle. Credits, the purchase and the result settlement remain reducer/economy concerns; the UI never invents a reward from displayed altitude.
+
+Each gameplay launch must also carry an explicit launch seed in its immutable active-launch/result envelope. The game boundary generates and stores the seed; a deterministic seeded PRNG derives small physical-input perturbations before calling `simulateVertical`. The solver must not call `Math.random` or randomize a completed altitude. Replaying a stored seed must reconstruct the same inputs, trace and terminal result. Unit tests continue to pass explicit seeds (including a no-variance fixture where useful), while gameplay uses a generated seed. No seed-based catastrophic failure model is required for the opening.
+
 ## State management and commands
 
 One reducer/store owned by the root is enough; React context can expose state and dispatch. Persist a compact progress object: Credits, owned levels, best altitude, earned milestone IDs, next run ID, last settled run ID and optional last result summary. Keep derived vehicle stats, prices and available unlocks as selectors. Store immutable earned milestone IDs but derive UI visibility from them and current content availability.

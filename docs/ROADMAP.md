@@ -4,13 +4,19 @@ Updated: 2026-09-05. Canonical repository: https://github.com/nhughes1228-spec/E
 
 ## Current state
 
-Phase 1 implementation and the white-screen deployment correction are merged into `main` and live at the documented GitHub Pages URL: a fixed-starter React/Vite launch prototype with production vertical-v1 simulation, deterministic report generation, session record, replay, accessibility support, boot recovery and GitHub Pages repository-subpath coverage. Local, subpath and live browser verification pass; Phase 1 publishing and first-launch acceptance are complete. Phase 2 is the next authorized scope, but remains intentionally unstarted: Credits, four opening upgrades, atomic settlement and save/reload recovery.
+Phase 1 implementation and the white-screen/playtest corrections are merged into `main` and live at the documented GitHub Pages URL: a fixed-starter React/Vite launch prototype with production vertical-v1 simulation, deterministic report generation, session record, replay, accessibility support, immediate ignition feedback, shared altitude presentation mapping, boot recovery and GitHub Pages repository-subpath coverage. Local, subpath and live browser verification pass; Phase 1 publishing and first-launch acceptance are complete. Phase 2 is the next authorized scope, but remains intentionally unstarted: Credits, four opening upgrades, seeded launch variance, atomic settlement and save/reload recovery.
 
 Phase 0 is necessarily the sole non-playable prerequisite. Every implementation phase below must preserve the previous playable game and finish with a playable build plus its acceptance checks. Do not claim Phase 0 itself is playable.
 
 ## Foundation verification
 
 The production TypeScript report reproduces the committed opening fixtures exactly on 2026-09-05. All 729 builds pass dt-halving convergence and immediate-liftoff checks; zero negative physical upgrade edges. Maximum altitude difference is 0.00005819 m and maximum time difference is 0.00000143 s. Both baseline purchase policies reach 1 km on launch 22. The Phase 1 unit suite covers analytic/invariant cases, event handling and reducer settlement; the Playwright smoke suite covers two launches and a 390×844 viewport. Final command results are recorded in the implementation handoff for commit review.
+
+## Phase 2 requirements recorded from Phase 1 playtest
+
+Phase 1 playtesting confirms that the next playable milestone must implement the actual incremental loop: **launch → apogee → Credits → purchase an Engine/Fuel Tank/Airframe/Ignition upgrade → improved launch**. Do not treat the current fixed-starter replay as progression, and do not add that economy to the Phase 1 usability correction.
+
+The same configuration must also support modest natural launch variance, initially targeted at approximately ±2–3%. Phase 2 should vary an underlying physical input with a generated, stored seed, run the authoritative simulation, and retain exact replayability from that seed. Fixed seeds must keep unit tests deterministic; no final-altitude randomization, catastrophic opening swings or variance-reduction technology are in scope until separately designed.
 
 ## Phases and exit gates
 
