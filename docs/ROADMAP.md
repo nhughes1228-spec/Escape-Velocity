@@ -1,10 +1,10 @@
 # Roadmap and project state
 
-Updated: 2026-09-05. Canonical repository: https://github.com/nhughes1228-spec/Escape-Velocity (private).
+Updated: 2026-09-05. Canonical repository: https://github.com/nhughes1228-spec/Escape-Velocity (public).
 
 ## Current state
 
-Phase 1 implementation and the white-screen deployment correction are on the `codex/phase-1-white-screen` branch: a fixed-starter React/Vite launch prototype with production vertical-v1 simulation, deterministic report generation, session record, replay, accessibility support, boot recovery and GitHub Pages repository-subpath coverage. Local and subpath browser verification pass. The Pages workflow is committed, but GitHub currently reports that this private repository needs a plan upgrade or public visibility before a Pages site can exist; user acceptance of the deployed URL therefore remains the Phase 1 gate. Phase 2 is the next authorized scope only after that acceptance: Credits, four opening upgrades, atomic settlement and save/reload recovery.
+Phase 1 implementation and the white-screen deployment correction are on the `codex/phase-1-white-screen` branch: a fixed-starter React/Vite launch prototype with production vertical-v1 simulation, deterministic report generation, session record, replay, accessibility support, boot recovery and GitHub Pages repository-subpath coverage. Local and subpath browser verification pass. The repository is now public and the Pages workflow is ready; user acceptance of the deployed URL remains the Phase 1 gate. Phase 2 is the next authorized scope only after that acceptance: Credits, four opening upgrades, atomic settlement and save/reload recovery.
 
 Phase 0 is necessarily the sole non-playable prerequisite. Every implementation phase below must preserve the previous playable game and finish with a playable build plus its acceptance checks. Do not claim Phase 0 itself is playable.
 
@@ -52,4 +52,4 @@ Record phase completion only after its build/tests and relevant human/UI checks 
 
 ## Outstanding decisions
 
-Priority before Phase 5: next vehicle families, transitions and measured pacing to 10 km/100 km. Priority before Phase 7: orbital guidance, mission completion/time horizon, reward transition and presentation. Later: staging interaction, automation/offline policy, mission breadth and endgame. Art style can evolve during Phase 1 without changing physics. The GitHub Pages workflow is configured, but the current private-repository plan does not provide a Pages site; making the repository public or upgrading the plan, then selecting GitHub Actions in Pages settings, remains an operational/administrative decision.
+Priority before Phase 5: next vehicle families, transitions and measured pacing to 10 km/100 km. Priority before Phase 7: orbital guidance, mission completion/time horizon, reward transition and presentation. Later: staging interaction, automation/offline policy, mission breadth and endgame. Art style can evolve during Phase 1 without changing physics. The public repository has the GitHub Pages workflow; selecting GitHub Actions in Pages settings and completing the first deployment remain operational/administrative steps.
