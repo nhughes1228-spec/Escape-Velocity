@@ -32,7 +32,7 @@ The documents own intended semantics, configuration owns numeric tuning and code
 
 ## Hosting
 
-Local development and the ordinary production preview use the host-root Vite base `/`. `npm run build:pages` overrides the base to `/Escape-Velocity/`, matching the repository subpath used by GitHub Pages. The Pages workflow publishes `dist` on pushes to `main`; no client-side router or deep-link fallback is needed for this one-screen application. A static boot fallback in `index.html` and a React error boundary keep asset-load or render failures visible to players.
+Local development and the ordinary production preview use the host-root Vite base `/`. `npm run build:pages` overrides the base to `/Escape-Velocity/`, matching the repository subpath used by GitHub Pages. The Pages workflow publishes `dist` on pushes to `main` once the repository has Pages access and is configured to use GitHub Actions; the current private repository/account reports that Pages requires an upgrade or public visibility. No client-side router or deep-link fallback is needed for this one-screen application. A static boot fallback in `index.html` and a React error boundary keep asset-load or render failures visible to players.
 
 ## Boundaries and data flow
 

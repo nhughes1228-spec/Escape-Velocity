@@ -17,9 +17,9 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 
 ## Play online
 
-[Open the deployed Phase 1 game after the first successful Pages deploy](https://nhughes1228-spec.github.io/Escape-Velocity/)
+[Open the Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-The GitHub Pages workflow deploys the `main` branch at that repository-subpath URL. The first deployment requires GitHub Pages to be enabled for the repository with **GitHub Actions** as its source; subsequent pushes/merges to `main` deploy automatically.
+This is the intended GitHub Pages URL. The deployment workflow publishes the `main` branch at this repository-subpath URL once Pages is available and configured with **GitHub Actions** as its source. GitHub currently reports that this repository is private and that Pages requires either making the repository public or using a plan that supports Pages for private repositories. Until that account/repository setting is changed, the link will show GitHub's 404 page; the application build itself is ready.
 
 ## Development
 
