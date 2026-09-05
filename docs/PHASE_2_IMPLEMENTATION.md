@@ -1,8 +1,8 @@
 # Phase 2 implementation checkpoint
 
-Status: domain, settlement and save foundation implemented on the Phase 2 branch; broad upgrade UI integration is intentionally paused for Astra review. This document records what is actually in the repository, while [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
+Status: correction commit `059aee9` passed the focused Astra P0 gate. Controller/UI integration may proceed with the P1 corrections in the [focused review](PHASE_2_P0_REVIEW.md); Phase 2 remains unshipped. This document records what is actually in the repository, while [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
 
-**Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes revealed four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records the evidence. The correction branch now addresses those four boundaries with focused regression coverage; this remains a pre-UI focused-gate handoff until Astra reviews the correction commit. No balance tuning or normal-flight physics change was made.
+**Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes revealed four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records the evidence. Correction commit `059aee9` subsequently passed the [focused P0 review](PHASE_2_P0_REVIEW.md). All four original reproductions are fixed; remaining P1 work includes unsaved gameplay under read failure, stable subscription snapshots, one-time interrupted reconciliation and explicit Settings outcomes. No balance tuning or normal-flight physics change was made.
 
 ## Implemented checkpoint scope
 
@@ -21,7 +21,7 @@ Status: domain, settlement and save foundation implemented on the Phase 2 branch
 - Playback IDs are monotonic for the controller lifetime, are not restored from saves, and are rejected after reset/import/recovery or controller disposal. Reservation admission is checked before seed acquisition.
 - Store state returned to presentation is a defensive snapshot. Save validation and revision-overflow checks complete before authoritative state publication; invalid transitions are rejected separately from valid transitions whose storage write fails.
 
-The existing React screen remains the accepted Phase 1 surface during this checkpoint. It has not yet been wired to display Credits, upgrade cards, Settings import/export or the secondary replay control. That is deliberate: focused Astra review occurs after these corrections and before the broad UI work prescribed by Phase 2 specification step J5.
+The existing React screen remains the accepted Phase 1 surface during this checkpoint. It has not yet been wired to display Credits, upgrade cards, Settings import/export or the secondary replay control. The focused P0 gate is now cleared; the next implementation work is the controller refinements followed by the broad UI work prescribed by Phase 2 specification step J5. The current UI still bypasses the persistent store until that integration.
 
 ## Verification at checkpoint
 
