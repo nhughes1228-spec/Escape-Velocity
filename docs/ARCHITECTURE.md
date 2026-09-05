@@ -1,6 +1,6 @@
 # Architecture
 
-Status: foundation decision, 2026-09-05. No application is implemented yet. Prefer small explicit modules over frameworks for hypothetical future systems.
+Status: foundation decision with Phase 1 implementation, 2026-09-05. The first playable launch prototype follows this layout; future systems remain intentionally unimplemented. Prefer small explicit modules over frameworks for hypothetical future systems.
 
 ## Stack
 
@@ -15,7 +15,7 @@ AGENTS.md                      agent workflow
 README.md                      entry point and verified commands
 docs/                          rules, decisions, roadmap, handoffs
 balance/opening.json            sole numeric opening balance source
-tools/balance_probe.py          temporary design experiment
+scripts/                        balance reports importing production domain code
 src/config/                    typed JSON validation and configuration access
 src/simulation/                pure vertical solver, forces, events, result types
 src/game/                      vehicle derivation, costs, rewards, reducer, selectors
@@ -23,11 +23,10 @@ src/persistence/               save validation, migrations, storage adapter
 src/presentation/              playback clock, trace interpolation, camera, canvas
 src/ui/                        React controls, summaries, styles
 src/main.tsx                   composition root
-scripts/                       balance reports importing production domain code
 tests/                         analytic, fixtures, reducer, save and browser cases
 ```
 
-Only create directories as their phase needs them. `balance/opening.json` exists now as a machine-readable design artifact. `tools/balance_probe.py` is an intentionally limited opening calibration experiment, not a second production simulator. In Phase 1 port its report generation to TypeScript importing the production solver, preserve the measured fixtures, then remove the Python solver in the same change. Do not keep parallel formula implementations drifting forever.
+Only create directories as their phase needs them. `balance/opening.json` remains the machine-readable design artifact. Phase 1 replaced the intentionally limited Python calibration probe with `scripts/balance-report.ts`, which imports the production solver and preserves the measured fixtures. Do not keep parallel formula implementations drifting forever.
 
 The documents own intended semantics, configuration owns numeric tuning and code implements them. If these conflict, name the conflict and resolve it explicitly with tests and a document/config update. Neither old conversation history nor undocumented code automatically wins.
 

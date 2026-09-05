@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (private).
 
-**Current state:** architecture/design foundation. There is no runnable game yet. Next: [Luna Phase 1 implementation handoff](docs/LUNA_PHASE_1.md).
+**Current state:** Phase 1 first playable launch. The fixed starter rocket can be launched, observed through ignition, powered ascent, burnout and coast, then replayed with a session record. Phase 2 adds Credits, upgrades and saves.
 
 ## Project record
 
@@ -15,16 +15,20 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Roadmap and current state](docs/ROADMAP.md)
 - [Instructions for every agent](AGENTS.md)
 
-## Verify the foundation
+## Verify the application
 
-Requires Python 3.9+ with its standard library only:
+Requires Node 24.14.0 (see `.nvmrc`):
 
 ```sh
-python3 tools/balance_probe.py > /tmp/escape-velocity-balance-report.json
-diff -u docs/balance-report.json /tmp/escape-velocity-balance-report.json
-git diff --check
+npm ci
+npm run typecheck
+npm test -- --run
+npm run build
+npm run balance:report
+npx playwright install chromium  # once per machine, for browser smoke tests
+npm run test:e2e
 ```
 
-The report sweeps 729 opening rocket builds at two timesteps and models two purchasing strategies. It is a design experiment, not production application validation. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
+`npm run dev` starts the local game. The production TypeScript report sweeps 729 opening rocket builds at two timesteps and models two purchasing strategies. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
 
-Phase 1 replaces this temporary Python probe with a report using the production TypeScript solver, and adds build/unit/browser commands. No hosting provider or license has been selected.
+The browser smoke tests use an injected presentation clock for deterministic CI state transitions; normal play uses foreground wall time and pauses when the tab is hidden. No hosting provider or license has been selected.

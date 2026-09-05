@@ -1,7 +1,7 @@
 {
   "balanceVersion": "opening-v1",
   "modelVersion": "vertical-v1",
-  "scope": "Design probe; lifting opening builds only. No application/save/event tests.",
+  "scope": "Production TypeScript solver; trace-free opening sweep and campaign comparison. Application/save/event behavior is covered by tests.",
   "fixtures": [
     {
       "levels": [
@@ -76,8 +76,8 @@
   ],
   "audit": {
     "builds": 729,
-    "worstAltitudeDifferenceM": 5.8188792081637075e-05,
-    "worstTimeDifferenceS": 1.4278358051456053e-06,
+    "worstAltitudeDifferenceM": 0.000058188792650071264,
+    "worstTimeDifferenceS": 0.0000014278358015928916,
     "minimumPadTWR": 1.1083871880194873,
     "negativeUpgradeEdges": 0
   },
