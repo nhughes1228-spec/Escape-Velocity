@@ -1,5 +1,7 @@
 # Physics specification — vertical-v1
 
+> Phase 2 review (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime remains Phase 1 at review commit `87cbc30`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+
 Status: normative for the first playable simulation. SI units throughout: kg, m, s, N, m/s, kg/s, kg/m³. This is an Earth-like toy model for interacting upgrades, not a flight planning tool. [BALANCE](BALANCE.md) owns parameters; this document owns equations and event semantics.
 
 ## Assumptions and state

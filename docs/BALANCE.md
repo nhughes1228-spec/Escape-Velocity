@@ -1,5 +1,7 @@
 # Balance framework — opening-v1
 
+> Phase 2 review (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime remains Phase 1 at review commit `87cbc30`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+
 Status: measured opening candidate, not human-playtested. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
 
 ## Starter rocket

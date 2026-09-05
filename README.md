@@ -13,6 +13,7 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Balance and pacing](docs/BALANCE.md)
 - [Software architecture](docs/ARCHITECTURE.md)
 - [Roadmap and current state](docs/ROADMAP.md)
+- [Phase 1 audit and Phase 2 implementation specification](docs/PHASE_2_SPEC.md)
 - [Instructions for every agent](AGENTS.md)
 
 ## Play online

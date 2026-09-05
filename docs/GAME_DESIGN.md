@@ -1,5 +1,7 @@
 # Escape Velocity — game design
 
+> Phase 2 review (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime remains Phase 1 at review commit `87cbc30`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+
 Status: foundation specification, 2026-09-05. Opening rules are specified; later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
 
 ## Fantasy and core loop

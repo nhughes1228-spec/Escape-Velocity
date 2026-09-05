@@ -12,6 +12,12 @@ Phase 0 is necessarily the sole non-playable prerequisite. Every implementation 
 
 The production TypeScript report reproduces the committed opening fixtures exactly on 2026-09-05. All 729 builds pass dt-halving convergence and immediate-liftoff checks; zero negative physical upgrade edges. Maximum altitude difference is 0.00005819 m and maximum time difference is 0.00000143 s. Both baseline purchase policies reach 1 km on launch 22. The Phase 1 unit suite covers analytic/invariant cases, event handling and reducer settlement; the Playwright smoke suite covers two launches and a 390×844 viewport. Final command results are recorded in the implementation handoff for commit review.
 
+## Phase 2 architect review and handoff
+
+Reviewed `main` / `origin/main` at `87cbc30` after fetch, 2026-09-05. [Complete Phase 1 audit and Phase 2 specification](PHASE_2_SPEC.md) is ready for Luna. No production code or active balance changed in this review. Unit suite (13 tests), local browser suite (3), Pages-subpath suite (2), typecheck, production build and nominal balance report passed; live launch/relaunch inspected. Ignition feedback is present. Remaining prerequisites: shared altitude anchor without rocket-only clamping, bounded pad/trace execution, and explicit new-launch/replay settlement contracts.
+
+Approved handoff candidate retains physical caps/curves and Credits formula, removes Phase 3 grants from Phase 2 pacing, uses a bounded seeded engine factor and changes Ignition to a cheaper delay table. [Candidate and measured report](experiments/phase-2-report.json) support ~19–20 minutes to the finite opening's final purchases; 5/10 km are outside Phase 2. These candidate values are not active gameplay yet. Complete the handoff's acceptance checklist before marking Phase 2 shipped; request Astra review after pure domain/recipe/save implementation and tests, before full UI integration.
+
 ## Phase 2 requirements recorded from Phase 1 playtest
 
 Phase 1 playtesting confirms that the next playable milestone must implement the actual incremental loop: **launch → apogee → Credits → purchase an Engine/Fuel Tank/Airframe/Ignition upgrade → improved launch**. Do not treat the current fixed-starter replay as progression, and do not add that economy to the Phase 1 usability correction.
