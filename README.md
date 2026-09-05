@@ -17,9 +17,9 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 
 ## Play online
 
-[Open the Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
+[Open the live Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-This is the intended GitHub Pages URL. The repository is public, and the deployment workflow enables Pages and publishes the `main` branch at this repository-subpath URL using **GitHub Actions**. Until the first deployment completes, the link may still show GitHub's 404 page; the application build itself is ready.
+This is the live GitHub Pages URL. The public repository's deployment workflow enables Pages and publishes the `main` branch at this repository-subpath URL using **GitHub Actions**. The deployment and a first launch were verified in a browser on 2026-09-05.
 
 ## Development
 

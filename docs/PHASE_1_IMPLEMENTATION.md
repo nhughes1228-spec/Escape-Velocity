@@ -1,6 +1,6 @@
 # Phase 1 implementation handoff
 
-Status: deployment correction implemented on `codex/phase-1-white-screen`, 2026-09-05. The commit SHA is reported with the reviewed commit rather than embedded in this handoff. Phase 1 remains subject to user acceptance of the deployed URL.
+Status: deployment correction implemented and live on `main`, 2026-09-05. The commit SHA is reported with the reviewed commit rather than embedded in this handoff. Phase 1 first-launch acceptance passed in a real browser.
 
 ## Delivered behavior
 
@@ -12,7 +12,7 @@ The canvas draws the illustrative rocket, simulated trace, height ruler and reco
 
 Commit `6aa0a1e` built successfully at the host root but emitted absolute `/assets/...` URLs. When that `dist` directory was mounted at the GitHub Pages repository path `/Escape-Velocity/`, the HTML loaded with an empty `#root`, both JavaScript/CSS requests returned 404, and Chromium reported failed resource loads. This reproduces the reported white screen. Opening `dist/index.html` directly via `file://` is also unsupported because module assets need an HTTP origin.
 
-The correction adds `npm run build:pages` with Vite base `/Escape-Velocity/`, a Pages deployment workflow on `main`, a subpath E2E check, and a static boot fallback. A React error boundary covers failures after the bundle has loaded. The intended playable URL is [https://nhughes1228-spec.github.io/Escape-Velocity/](https://nhughes1228-spec.github.io/Escape-Velocity/); the repository is now public, and the workflow enables Pages with GitHub Actions before publishing the first successful build.
+The correction adds `npm run build:pages` with Vite base `/Escape-Velocity/`, a Pages deployment workflow on `main`, a subpath E2E check, and a static boot fallback. A React error boundary covers failures after the bundle has loaded. The live playable URL is [https://nhughes1228-spec.github.io/Escape-Velocity/](https://nhughes1228-spec.github.io/Escape-Velocity/); the repository is public, Pages is configured for GitHub Actions, and the first deployment completed successfully.
 
 ## Boundaries and exclusions
 
@@ -40,6 +40,16 @@ git diff --check               passed
 
 The production report retains the foundation fixture values: starter apogee 160.170311 m, ignition-completion-to-apogee time 8.741557 s, maximum dt-halving altitude difference 0.00005819 m, maximum time difference 0.00000143 s, minimum pad TWR 1.10838719, and both baseline campaigns reaching 1 km on launch 22. The browser suite covers launch/replay, visible powered-ascent → coast → result transitions, controlled-clock hidden-tab pause/resume, no console errors during two complete launches, and essential controls at 390×844. Ready and result states were visually inspected with Chromium screenshots.
 
+Live deployment verification:
+
+```text
+Pages source                  GitHub Actions
+Deployment workflow           33990000879 — passed (build and deploy jobs)
+Published commit              e56cff1 — merged into main
+Live URL response             HTTP 200
+Browser launch                ignition → Flight complete; 160 m apogee; 8.74 s; no console errors
+```
+
 ## Review focus
 
-The production solver deliberately matches the calibrated Python fixture while adding the specified invalid-input, pad-support, event and duration-limit handling. Astra review is useful for the numerical/event boundary and the transition from the fixed starter controller to Phase 2 economy/save commands. The remaining acceptance item is an actual successful Pages deployment from `main` and a user click-through of the documented URL.
+The production solver deliberately matches the calibrated Python fixture while adding the specified invalid-input, pad-support, event and duration-limit handling. Astra review is useful for the numerical/event boundary and the transition from the fixed starter controller to Phase 2 economy/save commands. Phase 1 publishing and first-launch acceptance are complete; Phase 2 remains intentionally unstarted.
