@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "build": "vite build",
+    "build:pages": "vite build --base=/Escape-Velocity/",
+    "preview": "vite preview",
+    "preview:pages": "node scripts/serve-pages.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:pages": "npm run build:pages && playwright test --config=playwright.pages.config.ts",
     "balance:report": "tsx scripts/balance-report.ts"
   },
   "dependencies": {

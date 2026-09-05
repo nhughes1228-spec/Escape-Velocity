@@ -1,6 +1,6 @@
 # Architecture
 
-Status: foundation decision with Phase 1 implementation, 2026-09-05. The first playable launch prototype follows this layout; future systems remain intentionally unimplemented. Prefer small explicit modules over frameworks for hypothetical future systems.
+Status: foundation decision with Phase 1 implementation and GitHub Pages deployment, 2026-09-05. The first playable launch prototype follows this layout; future systems remain intentionally unimplemented. Prefer small explicit modules over frameworks for hypothetical future systems.
 
 ## Stack
 
@@ -29,6 +29,10 @@ tests/                         analytic, fixtures, reducer, save and browser cas
 Only create directories as their phase needs them. `balance/opening.json` remains the machine-readable design artifact. Phase 1 replaced the intentionally limited Python calibration probe with `scripts/balance-report.ts`, which imports the production solver and preserves the measured fixtures. Do not keep parallel formula implementations drifting forever.
 
 The documents own intended semantics, configuration owns numeric tuning and code implements them. If these conflict, name the conflict and resolve it explicitly with tests and a document/config update. Neither old conversation history nor undocumented code automatically wins.
+
+## Hosting
+
+Local development and the ordinary production preview use the host-root Vite base `/`. `npm run build:pages` overrides the base to `/Escape-Velocity/`, matching the repository subpath used by GitHub Pages. The Pages workflow publishes `dist` on pushes to `main`; no client-side router or deep-link fallback is needed for this one-screen application. A static boot fallback in `index.html` and a React error boundary keep asset-load or render failures visible to players.
 
 ## Boundaries and data flow
 

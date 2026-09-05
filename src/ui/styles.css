@@ -19,6 +19,22 @@ body {
 
 button, input { font: inherit; }
 
+.boot-fallback {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: #e9f4f1;
+  background: #06111c;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.boot-fallback h1, .boot-fallback p { margin: 0; }
+.boot-fallback h1 { max-width: 540px; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -0.045em; }
+.boot-fallback > p:not(.boot-kicker) { max-width: 560px; color: #a4c0c2; line-height: 1.6; }
+.boot-kicker { margin: 0 0 3px !important; color: #72d6d4; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; }
+.boot-error button { width: fit-content; margin-top: 10px; padding: 12px 17px; border: 0; border-radius: 10px; color: #07202a; background: #7ae0d5; cursor: pointer; font-weight: 800; }
+
 .app-shell {
   width: min(980px, calc(100% - 32px));
   margin: 0 auto;

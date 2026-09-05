@@ -5,9 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#08131f" />
     <title>Escape Velocity — Flight Lab</title>
+    <style>
+      .boot-fallback { min-height: 100vh; display: grid; place-content: center; gap: 10px; padding: 32px; color: #e9f4f1; background: #06111c; font-family: system-ui, sans-serif; }
+      .boot-fallback h1, .boot-fallback p { margin: 0; }
+      .boot-fallback h1 { max-width: 560px; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -0.045em; }
+      .boot-fallback p:not(.boot-kicker) { max-width: 560px; color: #a4c0c2; line-height: 1.6; }
+      .boot-kicker { margin: 0 0 3px; color: #72d6d4; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; }
+      .boot-error button { width: fit-content; margin-top: 10px; padding: 12px 17px; border: 0; border-radius: 10px; color: #07202a; background: #7ae0d5; cursor: pointer; font-weight: 800; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="boot-fallback" role="status" aria-live="polite">
+        <p class="boot-kicker">ESCAPE VELOCITY · FLIGHT LAB</p>
+        <h1>Starting the flight lab…</h1>
+        <p>Preparing the launch range.</p>
+      </main>
+    </div>
+    <script>
+      window.__EV_BOOTED__ = false;
+      window.setTimeout(function () {
+        if (window.__EV_BOOTED__) return;
+        var root = document.getElementById('root');
+        if (!root) return;
+        root.replaceChildren();
+        var fallback = document.createElement('main');
+        fallback.className = 'boot-fallback boot-error';
+        fallback.setAttribute('role', 'alert');
+        var kicker = document.createElement('p');
+        kicker.className = 'boot-kicker';
+        kicker.textContent = 'ESCAPE VELOCITY · FLIGHT LAB';
+        var heading = document.createElement('h1');
+        heading.textContent = 'The flight lab could not start.';
+        var message = document.createElement('p');
+        message.textContent = 'Refresh and try again. If you are opening a downloaded build, serve it over HTTP from its configured base path instead of opening index.html directly.';
+        var reload = document.createElement('button');
+        reload.type = 'button';
+        reload.textContent = 'Refresh page';
+        reload.addEventListener('click', function () { window.location.reload(); });
+        fallback.append(kicker, heading, message, reload);
+        root.append(fallback);
+      }, 3500);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
