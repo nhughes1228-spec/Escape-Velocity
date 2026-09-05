@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (private).
 
-**Current state:** architecture/design foundation. There is no runnable game yet. Next: [Luna Phase 1 implementation handoff](docs/LUNA_PHASE_1.md).
+**Current state:** Phase 1 first playable launch and deployment correction. The fixed starter rocket can be launched, observed through ignition, powered ascent, burnout and coast, then replayed with a session record. Phase 2 adds Credits, upgrades and saves.
 
 ## Project record
 
@@ -15,16 +15,42 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Roadmap and current state](docs/ROADMAP.md)
 - [Instructions for every agent](AGENTS.md)
 
-## Verify the foundation
+## Play online
 
-Requires Python 3.9+ with its standard library only:
+[Open the Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
+
+This is the intended GitHub Pages URL. The repository is now public, and the deployment workflow publishes the `main` branch at this repository-subpath URL once Pages is configured with **GitHub Actions** as its source. Until that first deployment completes, the link may still show GitHub's 404 page; the application build itself is ready.
+
+## Development
+
+Requires Node 24.14.0 (see `.nvmrc`):
 
 ```sh
-python3 tools/balance_probe.py > /tmp/escape-velocity-balance-report.json
-diff -u docs/balance-report.json /tmp/escape-velocity-balance-report.json
-git diff --check
+npm ci
+npm run dev
 ```
 
-The report sweeps 729 opening rocket builds at two timesteps and models two purchasing strategies. It is a design experiment, not production application validation. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
+Open the printed local URL (normally `http://localhost:5173/`). Keep the Vite dev server running while playing. Do not double-click a source file or `dist/index.html`; browsers do not resolve the module assets correctly from a `file://` URL.
 
-Phase 1 replaces this temporary Python probe with a report using the production TypeScript solver, and adds build/unit/browser commands. No hosting provider or license has been selected.
+## Production build and testing
+
+```sh
+npm run typecheck
+npm test -- --run
+npm run build
+npm run balance:report
+npx playwright install chromium  # once per machine
+npm run test:e2e
+```
+
+`npm run build` creates a host-root production bundle. Serve it over HTTP with `npm run preview` and open the printed preview URL; it is not a standalone double-clickable HTML file.
+
+To verify the GitHub Pages repository-subpath bundle locally:
+
+```sh
+npm run test:e2e:pages
+```
+
+That command builds with `/Escape-Velocity/` as Vite’s base, serves the result, and checks the same URL shape used by GitHub Pages. The production TypeScript report sweeps 729 opening rocket builds at two timesteps and models two purchasing strategies. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
+
+The browser smoke tests use an injected presentation clock for deterministic CI state transitions; normal play uses foreground wall time and pauses when the tab is hidden. If a JavaScript bundle cannot load or React fails during boot, the page shows a recovery message with a refresh action instead of remaining blank.
