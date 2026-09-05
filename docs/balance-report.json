@@ -1,0 +1,107 @@
+{
+  "balanceVersion": "opening-v1",
+  "modelVersion": "vertical-v1",
+  "scope": "Design probe; lifting opening builds only. No application/save/event tests.",
+  "fixtures": [
+    {
+      "levels": [
+        0,
+        0,
+        0
+      ],
+      "altitudeM": 160.170311,
+      "flightTimeS": 8.741557,
+      "credits": 19
+    },
+    {
+      "levels": [
+        1,
+        0,
+        0
+      ],
+      "altitudeM": 193.329105,
+      "flightTimeS": 8.781981,
+      "credits": 20
+    },
+    {
+      "levels": [
+        0,
+        1,
+        0
+      ],
+      "altitudeM": 203.635326,
+      "flightTimeS": 10.193641,
+      "credits": 21
+    },
+    {
+      "levels": [
+        0,
+        0,
+        1
+      ],
+      "altitudeM": 192.650897,
+      "flightTimeS": 9.222543,
+      "credits": 20
+    },
+    {
+      "levels": [
+        2,
+        2,
+        2
+      ],
+      "altitudeM": 446.157973,
+      "flightTimeS": 12.475423,
+      "credits": 29
+    },
+    {
+      "levels": [
+        4,
+        4,
+        4
+      ],
+      "altitudeM": 805.393382,
+      "flightTimeS": 15.553563,
+      "credits": 38
+    },
+    {
+      "levels": [
+        8,
+        8,
+        8
+      ],
+      "altitudeM": 1647.878595,
+      "flightTimeS": 20.656563,
+      "credits": 52
+    }
+  ],
+  "audit": {
+    "builds": 729,
+    "worstAltitudeDifferenceM": 5.8188792081637075e-05,
+    "worstTimeDifferenceS": 1.4278358051456053e-06,
+    "minimumPadTWR": 1.1083871880194873,
+    "negativeUpgradeEdges": 0
+  },
+  "campaignAssumptions": "1x playback, 1.5 s ignition, 4 s decision time per launch, no ignition purchases; buy affordable physical upgrades until none remain; stable engine/fuel/airframe tie order.",
+  "campaigns": {
+    "altitude_per_credit": {
+      "launches": 22,
+      "minutes": 7.13,
+      "levels": [
+        5,
+        5,
+        5
+      ],
+      "altitudeM": 1002.24
+    },
+    "cheapest": {
+      "launches": 22,
+      "minutes": 6.98,
+      "levels": [
+        5,
+        5,
+        5
+      ],
+      "altitudeM": 1002.24
+    }
+  }
+}
