@@ -1,6 +1,8 @@
 # Architecture
 
-Status: foundation decision with Phase 1 implementation and GitHub Pages deployment, 2026-09-05. The first playable launch prototype follows this layout; future systems remain intentionally unimplemented. Prefer small explicit modules over frameworks for hypothetical future systems.
+> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime keeps the approved `opening-v2` / `vertical-v1.1` formulas and now mounts the controller-backed Phase 2 UI on this branch. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+
+Status: Phase 2 controller/UI integration candidate, 2026-09-05. Phase 1 remains the accepted public deployment until the integrated branch is released. The branch implements the approved Phase 2 domain, settlement, persistence and focused UI; prefer small explicit modules over frameworks for hypothetical future systems.
 
 ## Stack
 
@@ -38,12 +40,12 @@ Local development and the ordinary production preview use the host-root Vite bas
 
 1. A pure `deriveVehicle(levels, balance)` creates a vehicle spec. It knows nothing about components or canvas.
 2. `simulateVertical(spec, environment, options)` returns a result and optional trace. It knows no currency, unlock or storage rules.
-3. `startLaunch` snapshots levels, derived spec, balance/model versions and allocates one monotonically increasing run ID.
+3. The launch command boundary obtains one seed, snapshots levels, derived nominal/effective specs, balance/model versions and approved numeric options, then allocates one monotonically increasing run ID.
 4. A presentation controller plays the immutable trace after ignition. The physics result may be computed beforehand; it is not awarded beforehand.
-5. `settleLaunch(runId)` consumes the pending authoritative result once, updates record/credits/milestones and clears the active launch atomically. UI cannot submit arbitrary altitude or reward amounts.
-6. The storage adapter persists the completed durable state. Components render selectors and dispatch commands.
+5. `settleNewLaunch(runId)` consumes only the pending paid launch once, updates record/Credits/counts/summary and clears the active launch atomically. Replay is a separate read-only mode using the saved recipe; UI cannot submit arbitrary altitude or reward amounts.
+6. The store persists the complete durable envelope after reservation, settlement, purchase, settings and recovery commands. Components subscribe to stable state/persistence snapshots and dispatch commands; the UI never owns progression state.
 
-Use discriminated unions for status and outcomes, not scattered booleans. Define `FlightOutcome = 'apogee' | 'noLiftoff' | 'impact' | 'invalid' | 'limit'`; application cancellation discards the active flight. Distinguish `idle`, `ignition`, `playing`, `result`. Use `model: 'vertical-v1'` on result envelopes so orbital results can later be added without abusing altitude fields. Do not introduce an abstract plugin registry.
+Use discriminated unions for status and outcomes, not scattered booleans. Define `FlightOutcome = 'apogee' | 'noLiftoff' | 'impact' | 'invalid' | 'limit'`; application cancellation discards the active flight. Distinguish `ready`, `ignition`, `playing`, `replay`, `result`. Runtime recipes use `balanceVersion: 'opening-v2'` and `modelVersion: 'vertical-v1.1'`; orbital results must later use a separate model without abusing altitude fields. Do not introduce an abstract plugin registry.
 
 ## Phase 2 playtest requirements
 
@@ -53,9 +55,9 @@ Each gameplay launch must also carry an explicit launch seed in its immutable ac
 
 ## State management and commands
 
-One reducer/store owned by the root is enough; React context can expose state and dispatch. Persist a compact progress object: Credits, owned levels, best altitude, earned milestone IDs, next run ID, last settled run ID and optional last result summary. Keep derived vehicle stats, prices and available unlocks as selectors. Store immutable earned milestone IDs but derive UI visibility from them and current content availability.
+One reducer/store owned by the root is enough; React context can expose state and dispatch. Persist a compact progress object: Credits, owned levels, best altitude, launch counts, next run ID, last settled run ID, settings and the latest new-launch recipe/summary. Phase 2 does not persist milestone IDs. Keep derived vehicle stats, prices and available unlocks as selectors; the historical recipe is retained only for replay/debugging.
 
-Commands: launch, settle current launch, buy one upgrade (Phase 2), acknowledge result, load validated save and explicit user reset. Reducer checks phase, affordability, cap and IDs. Double-click Launch cannot allocate two active flights; stale/duplicate settlement is a no-op. Check integer safe-range on Credits and run IDs; reject overflow rather than silently lose currency. Phase 1 uses launch/result/record state only; add economy and saves in Phase 2.
+Commands: reserve a new launch, settle the current paid launch, start/complete/stop replay, buy one upgrade, set motion, reconcile an interrupted launch, import/export and explicit reset. The store acquires seeds once at the command boundary and checks the current primary save before durable commands. Reducer checks phase, affordability, cap and IDs. Double-click Launch cannot allocate two active flights; stale/duplicate settlement and late replay callbacks are no-ops. Check integer safe-range on Credits and run IDs; reject overflow rather than silently lose currency.
 
 No UI component may own a formula, spend Credits directly or mutate a vehicle. Purchased stats are frozen until the next launch. Tests should exercise the command boundary, not merely individual helpers.
 
@@ -69,21 +71,21 @@ Keep last flight and best-flight trace only in memory initially. Trace persisten
 
 ## Save/load (Phase 2)
 
-Use localStorage with a single JSON envelope, e.g. `{schemaVersion:1, balanceVersion:'opening-v1', revision, progress:{...}}`. Save only settled progression, not live solver state, particle positions, derived prices or animation time. Saving after purchases and settlement is enough; no save-per-frame. Before starting a flight persist its consumed nextRunId; an interrupted run has no reward and reopens idle.
+Use localStorage keys `escape-velocity.save` and `escape-velocity.save.backup` with a single JSON envelope `{schemaVersion:1, balanceVersion:'opening-v2', revision, progress:{...}}`. Save the reservation recipe before playback as `started`, then settle to `settled`; never save live solver state, particles, derived prices or animation time. Save after reservation, settlement, purchases, settings and recovery commands; never save per frame. On reload a `started` record becomes `interrupted` with no reward and reopens idle.
 
-Validate JSON shape, finite nonnegative record, nonnegative safe-integer Credits/IDs, integer bounded levels and known milestone IDs. Bound import size to 1 MB. An unreadable, oversized or unsupported-future-version save must not be overwritten automatically: show recovery/export/reset options and keep the original raw data. Balance changes are separate from schema migrations; preserve acquired progress or write an explicit compensation/mapping rule for removed content. Never silently clamp purchased levels to a new lower cap.
+Validate JSON shape, finite nonnegative record, nonnegative safe-integer Credits/counts/IDs, integer bounded levels, recipe versions, uint32 seeds, approved physical inputs and summary correlations. Bound import size to 1 MB. An unreadable, oversized or unsupported-future-version save must not be overwritten automatically: show recovery/export/reset options and keep the original raw data. Balance changes are separate from schema migrations; preserve acquired progress or write an explicit compensation/mapping rule for removed content. Never silently clamp purchased levels to a new lower cap.
 
 Migrations are pure sequential `vN → vN+1` functions tested against committed fixtures; validate before and after. Retain the raw source until migration and storage succeed. A storage adapter catches quota/privacy failures, keeps the session playable and clearly shows “Progress is not being saved” with export available. Keep one previous valid save as best-effort backup; loading must reject malformed envelopes and offer the valid backup explicitly.
 
-Settle currency, record and milestones in one new envelope and one primary-key write so a crash cannot persist only part of an award. No anti-cheat infrastructure: saves are editable local player data. In Phase 2 handle another tab via a storage event: suspend commands in the stale tab and ask it to reload before writing. localStorage is not transactional across tabs; document simultaneous-tab play as unsupported. Strong cross-tab locking is deferred unless required, not falsely promised by a revision number.
+Settle currency, record, counts and the launch summary in one new envelope and one primary-key write so a crash cannot persist only part of an award. No anti-cheat infrastructure: saves are editable local player data. In Phase 2 handle another tab via a storage event and a raw-primary comparison before every durable command: suspend commands in the stale tab and ask it to reload before writing. localStorage is not transactional across tabs; document simultaneous-tab play as unsupported. Strong cross-tab locking is deferred unless required, not falsely promised by a revision number.
 
 ## Tests and release checks
 
 `npm ci`, `npm run typecheck`, `npm test -- --run`, `npm run build`, and `npm run test:e2e` must be documented and succeed once the app exists. Use a pinned browser install in CI. Phase 1 establishes package scripts and a basic GitHub Actions workflow for typecheck, unit tests and build; browser smoke may be a separate CI job.
 
-Simulation tests include PHYSICS analytic cases, fractional burnout, no liftoff, invalid inputs, duration cap, recorded reference fixtures and timestep convergence. Parametric opening sweeps verify all builds lift and terminate, while identifying reductions in altitude from a purchase. General physics tests must not assert “fuel always improves altitude.” Curve/config validation checks caps, positive masses and safe prices. Economy tests cover threshold jumps, rounding, duplicate settlements, insufficient funds and interrupted flights. Save tests cover round-trip, malformed data, future versions, migration, failure to write and reload after purchase/award.
+Simulation tests include PHYSICS analytic cases, fractional burnout, no liftoff, invalid inputs, duration cap, recorded reference fixtures and timestep convergence. Parametric opening sweeps verify all builds lift and terminate, while identifying reductions in altitude from a purchase. General physics tests must not assert “fuel always improves altitude.” Curve/config validation checks caps, positive masses and safe prices. Economy tests cover reward rounding, price vectors, duplicate settlements, insufficient funds and interrupted flights. Save tests cover round-trip, malformed/oversized/future data, recipe validation, backup recovery, failure to write, imports and reload after reservation/award.
 
-Browser smoke: keyboard launch, ignition/burnout/coast/result, replay without reload, record update, no hidden-system controls, mobile-size controls, no console errors; add buy/save/reload in Phase 2. Visually inspect first flight and previous-record comparison. Exact aesthetics are not screenshot pixel tests. Record actual commands/results in a reviewable handoff or PR.
+Browser smoke: keyboard launch, ignition/burnout/coast/result, paid launch/reward, buy/save/reload, unpaid replay, interrupted reload, no hidden-system controls, mobile-size controls and no console errors. Visually inspect first flight, upgrade silhouette and previous-record comparison. Exact aesthetics are not screenshot pixel tests. Record actual commands/results in a reviewable handoff or PR.
 
 ## Future extension and decision discipline
 

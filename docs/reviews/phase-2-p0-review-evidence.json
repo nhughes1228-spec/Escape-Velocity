@@ -1,0 +1,171 @@
+{
+  "reviewedCommit": "059aee9",
+  "originalBlockerProbe": {
+    "corruptBefore": {
+      "kind": "recovery",
+      "message": "Saved progress needs recovery. Export it or recover a valid backup before replacing it.",
+      "error": null,
+      "protectedPrimaryRaw": "{\"gameId\":\"escape-velocity\",\"schemaVersion\":999,\"progress\":\"irreplaceable future data\"}",
+      "protectedBackupRaw": null,
+      "backupAvailable": false
+    },
+    "corruptAfter": {
+      "persistence": {
+        "kind": "recovery",
+        "message": "Saved progress needs recovery. Export it or recover a valid backup before replacing it.",
+        "error": null,
+        "protectedPrimaryRaw": "{\"gameId\":\"escape-velocity\",\"schemaVersion\":999,\"progress\":\"irreplaceable future data\"}",
+        "protectedBackupRaw": null,
+        "backupAvailable": false
+      },
+      "rawPreserved": true,
+      "backup": null,
+      "exportPreserved": true
+    },
+    "rejectedSeed": {
+      "calls": 1,
+      "rejected": false,
+      "started": 1
+    },
+    "resetCallback": {
+      "old": [
+        1,
+        1
+      ],
+      "current": [
+        1,
+        2
+      ],
+      "accepted": false,
+      "credits": 0
+    },
+    "invalidCountsAccepted": true,
+    "stale": {
+      "accepted": false,
+      "kind": "conflict",
+      "rawPreserved": true,
+      "engine": 1
+    },
+    "badImport": {
+      "credits": 19,
+      "exportIsBad": false,
+      "primaryStillValid": true
+    },
+    "readFailure": {
+      "erased": false,
+      "storedCredits": 19,
+      "kind": "recovery"
+    },
+    "mutableResult": {
+      "credits": 19,
+      "record": 160.31326435876053,
+      "persistence": "saved"
+    },
+    "nullHandled": true,
+    "terminalEvents": {
+      "outcome": "limit",
+      "events": [
+        {
+          "type": "burnout",
+          "timeS": 4.99999999999999
+        },
+        {
+          "type": "limit",
+          "timeS": 4.99999999999999,
+          "reason": "trace sample budget exhausted at burnout"
+        }
+      ]
+    },
+    "padCaps": [
+      {
+        "thrustN": 70,
+        "outcome": "limit",
+        "t": 0.1,
+        "fuel": 1.9825
+      },
+      {
+        "thrustN": 90,
+        "outcome": "limit",
+        "t": 0.1,
+        "fuel": 1.9775
+      }
+    ],
+    "revisionOverflow": {
+      "accepted": false,
+      "motion": "system",
+      "persistence": "error"
+    },
+    "traceWork": [
+      {
+        "mode": "normal",
+        "timedOut": false,
+        "status": 0,
+        "output": "{\"outcome\":\"limit\",\"samples\":2}"
+      },
+      {
+        "mode": "flight",
+        "timedOut": false,
+        "status": 0,
+        "output": "{\"outcome\":\"limit\",\"samples\":2}"
+      },
+      {
+        "mode": "pad",
+        "timedOut": false,
+        "status": 0,
+        "output": "{\"outcome\":\"limit\",\"samples\":1}"
+      }
+    ],
+    "endpointConvergence": {
+      "configurations": 729,
+      "conditions": 3,
+      "comparisons": 2187,
+      "nonApogee": 0,
+      "worstAltitudeM": 5.874285545814928e-05,
+      "worstTimeS": 1.4418426097506654e-06
+    },
+    "probeOriginallyWrittenFor": "1c9156c"
+  },
+  "adjacentProbe": {
+    "unavailable": {
+      "reserve": false,
+      "started": 0,
+      "writes": 0,
+      "status": "recovery"
+    },
+    "readFailureAtApogee": {
+      "settled": false,
+      "active": true,
+      "credits": 0,
+      "mode": "playing"
+    },
+    "interruptedReload": {
+      "before": {
+        "writes": 3,
+        "revision": 2
+      },
+      "after": {
+        "writes": 5,
+        "revision": 3
+      },
+      "second": {
+        "writes": 7,
+        "revision": 4
+      }
+    },
+    "snapshotIdentity": {
+      "state": false,
+      "persistence": false
+    },
+    "failedReset": {
+      "returned": true,
+      "memory": 0,
+      "stored": 19,
+      "status": "recovery"
+    },
+    "overflowSeed": {
+      "accepted": false,
+      "calls": 1,
+      "launches": 0
+    }
+  }
+}

@@ -11,7 +11,12 @@ import type {
 } from './types';
 
 const DEFAULT_BALANCE_VERSION = 'unknown-balance';
-const DEFAULT_MODEL_VERSION = 'vertical-v1';
+const DEFAULT_MODEL_VERSION = 'vertical-v1.1';
+const DEFAULT_TRACE_INTERVAL_S = 0.1;
+const DEFAULT_MAX_TRACE_SAMPLES = 20000;
+export const MAX_TRUSTED_INTEGRATION_STEPS = 300_000;
+export const MAX_TRUSTED_TRACE_SAMPLES = 20_000;
+export const MAX_TRUSTED_TRACE_WORK = 20_000;
 const EPSILON = 1e-9;
 
 function finite(value: number): boolean {
@@ -19,6 +24,7 @@ function finite(value: number): boolean {
 }
 
 function validVehicle(vehicle: VehicleSpec): boolean {
+  if (!vehicle || typeof vehicle !== 'object') return false;
   return (
     finite(vehicle.dryMassKg) && vehicle.dryMassKg > 0 &&
     finite(vehicle.fuelMassKg) && vehicle.fuelMassKg >= 0 &&
@@ -30,6 +36,7 @@ function validVehicle(vehicle: VehicleSpec): boolean {
 }
 
 function validEnvironment(environment: SimulationEnvironment): boolean {
+  if (!environment || typeof environment !== 'object') return false;
   return (
     finite(environment.gravityMps2) && environment.gravityMps2 >= 0 &&
     finite(environment.radiusM) && environment.radiusM > 0 &&
@@ -39,11 +46,14 @@ function validEnvironment(environment: SimulationEnvironment): boolean {
 }
 
 function validOptions(options: SimulationOptions): boolean {
+  if (!options || typeof options !== 'object') return false;
   return (
     finite(options.dtS) && options.dtS > 0 &&
     finite(options.maxTimeS) && options.maxTimeS > 0 &&
     finite(options.fuelEpsilonKg) && options.fuelEpsilonKg >= 0 &&
-    finite(options.traceIntervalS) && options.traceIntervalS > 0
+    finite(options.traceIntervalS) && options.traceIntervalS > 0 &&
+    Number.isSafeInteger(options.maxIntegrationSteps) && options.maxIntegrationSteps > 0 &&
+    Number.isSafeInteger(options.maxTraceSamples) && options.maxTraceSamples > 0
   );
 }
 
@@ -122,40 +132,98 @@ export function advanceVerticalState(
 interface Collector {
   readonly enabled: boolean;
   readonly samples: TraceSample[];
+  readonly maxSamples: number;
+  readonly maxWork: number;
+  workUsed: number;
   nextSampleTime: number;
-  add(sample: TraceSample): void;
-  sampleStep(state: VerticalState): void;
+  add(sample: TraceSample): boolean;
+  sampleStep(state: VerticalState): boolean;
+  addPadSamples(endTimeS: number, initialFuelKg: number, qKgPerS: number): boolean;
+  advanceSchedulePast(timeS: number): boolean;
 }
 
-function createCollector(enabled: boolean, intervalS: number, initial: TraceSample): Collector {
+function scheduledBoundaryCount(nextSampleTime: number, endTime: number, intervalS: number): number {
+  if (nextSampleTime > endTime) return 0;
+  const ratio = (endTime - nextSampleTime) / intervalS;
+  if (!finite(ratio)) return Number.POSITIVE_INFINITY;
+  return Math.floor(ratio) + 1;
+}
+
+function createCollector(enabled: boolean, intervalS: number, maxSamples: number, initial: TraceSample): Collector {
   const samples = enabled ? [initial] : [];
+  const sampleLimit = Math.min(MAX_TRUSTED_TRACE_SAMPLES, Math.max(1, maxSamples));
+  const maxWork = Math.min(MAX_TRUSTED_TRACE_WORK, sampleLimit);
   return {
     enabled,
     samples,
+    maxSamples: sampleLimit,
+    maxWork,
+    workUsed: 0,
     nextSampleTime: intervalS,
     add(sample) {
-      if (!enabled) return;
+      if (!enabled) return true;
       const previous = samples[samples.length - 1];
       if (previous && Math.abs(previous.timeS - sample.timeS) <= EPSILON) {
         samples[samples.length - 1] = sample;
-      } else {
-        samples.push(sample);
+        return true;
       }
+      if (samples.length >= sampleLimit) return false;
+      samples.push(sample);
+      return true;
     },
     sampleStep(state) {
-      if (!enabled) return;
-      while (this.nextSampleTime <= state.timeS + EPSILON) {
-        // Samples use the first completed integration state crossing each
-        // boundary. Their resolution is presentation data, not solver dt.
-        this.add({ ...state, phase: state.phase });
-        this.nextSampleTime += intervalS;
+      if (!enabled) return true;
+      const due = scheduledBoundaryCount(this.nextSampleTime, state.timeS + EPSILON, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
+        if (!this.add({ ...state, phase: state.phase })) return false;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
       }
+      return true;
+    },
+    addPadSamples(endTimeS, initialFuel, q) {
+      if (!enabled) return this.advanceSchedulePast(endTimeS);
+      const padSampleEnd = endTimeS - EPSILON;
+      const due = scheduledBoundaryCount(this.nextSampleTime, padSampleEnd, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
+        if (!this.add({
+          timeS: this.nextSampleTime,
+          altitudeM: 0,
+          velocityMps: 0,
+          fuelKg: Math.max(0, initialFuel - q * this.nextSampleTime),
+          phase: 'pad',
+        })) return false;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
+      }
+      return this.advanceSchedulePast(endTimeS);
+    },
+    advanceSchedulePast(timeS) {
+      if (!enabled) return true;
+      const due = scheduledBoundaryCount(this.nextSampleTime, timeS + EPSILON, intervalS);
+      if (due > this.maxWork - this.workUsed) return false;
+      for (let index = 0; index < due; index += 1) {
+        this.workUsed += 1;
+        const previousTime = this.nextSampleTime;
+        const nextTime = previousTime + intervalS;
+        if (!finite(nextTime) || nextTime <= previousTime) return false;
+        this.nextSampleTime = nextTime;
+      }
+      return true;
     },
   };
 }
 
-function appendEvent(events: FlightEvent[], type: FlightEvent['type'], timeS: number): void {
-  events.push({ type, timeS });
+function appendEvent(events: FlightEvent[], type: FlightEvent['type'], timeS: number, reason?: string): void {
+  events.push(reason ? { type, timeS, reason } : { type, timeS });
 }
 
 function resultFor(
@@ -170,12 +238,16 @@ function resultFor(
   collector: Collector,
   terminalTrace: TraceSample,
 ): FlightResult {
-  collector.add(terminalTrace);
+  const terminalSampleAdded = collector.add(terminalTrace);
+  const finalOutcome = terminalSampleAdded ? outcome : 'limit';
+  if (!terminalSampleAdded && !events.some((event) => event.type === 'limit')) {
+    appendEvent(events, 'limit', terminalTrace.timeS, 'trace sample budget exhausted at terminal sample');
+  }
   return {
     balanceVersion: options.balanceVersion ?? DEFAULT_BALANCE_VERSION,
     modelVersion: options.modelVersion ?? DEFAULT_MODEL_VERSION,
     vehicle: { ...vehicle },
-    outcome,
+    outcome: finalOutcome,
     maximumAltitudeM: Math.max(0, maximumAltitudeM),
     terminalTimeS: Math.max(0, terminalTimeS),
     terminalFuelKg: Math.max(0, terminalFuelKg),
@@ -186,17 +258,31 @@ function resultFor(
 }
 
 function invalidResult(vehicle: VehicleSpec, options: SimulationOptions): FlightResult {
-  const safeVehicle = { ...vehicle };
-  const collector = createCollector(Boolean(options.collectTrace), options.traceIntervalS, {
+  const safeOptions = (options && typeof options === 'object' ? options : {
+    dtS: 1,
+    maxTimeS: 1,
+    fuelEpsilonKg: 0,
+    traceIntervalS: DEFAULT_TRACE_INTERVAL_S,
+    maxIntegrationSteps: 1,
+    maxTraceSamples: DEFAULT_MAX_TRACE_SAMPLES,
+    collectTrace: false,
+  }) as SimulationOptions;
+  const rawVehicle = (vehicle && typeof vehicle === 'object' ? vehicle : {}) as VehicleSpec;
+  const safeVehicle = { ...rawVehicle };
+  const intervalS = finite(safeOptions.traceIntervalS) && safeOptions.traceIntervalS > 0 ? safeOptions.traceIntervalS : DEFAULT_TRACE_INTERVAL_S;
+  const maxSamples = Number.isSafeInteger(safeOptions.maxTraceSamples) && safeOptions.maxTraceSamples > 0
+    ? safeOptions.maxTraceSamples
+    : DEFAULT_MAX_TRACE_SAMPLES;
+  const collector = createCollector(Boolean(safeOptions.collectTrace), intervalS, maxSamples, {
     timeS: 0,
     altitudeM: 0,
     velocityMps: 0,
-    fuelKg: finite(vehicle.fuelMassKg) && vehicle.fuelMassKg >= 0 ? vehicle.fuelMassKg : 0,
+    fuelKg: finite(rawVehicle.fuelMassKg) && rawVehicle.fuelMassKg >= 0 ? rawVehicle.fuelMassKg : 0,
     phase: 'result',
   });
   const events: FlightEvent[] = [];
   appendEvent(events, 'invalid', 0);
-  return resultFor(safeVehicle, options, 'invalid', 0, 0, 0, null, events, collector, {
+  return resultFor(safeVehicle, safeOptions, 'invalid', 0, 0, 0, null, events, collector, {
     timeS: 0,
     altitudeM: 0,
     velocityMps: 0,
@@ -217,11 +303,14 @@ export function simulateVertical(
   const traceEnabled = options.collectTrace !== false;
   const qKgPerS = vehicle.thrustN / vehicle.exhaustVelocityMps;
   const initiallyPowered = vehicle.fuelMassKg > options.fuelEpsilonKg && qKgPerS > 0;
-  const initial = initialVerticalState(vehicle, initiallyPowered);
-  const collector = createCollector(traceEnabled, options.traceIntervalS, {
-    ...initial,
-    phase: initiallyPowered ? 'poweredAscent' : 'coast',
-  });
+  const supportedAtStart = environment.gravityMps2 > 0 &&
+    vehicle.thrustN < (vehicle.dryMassKg + vehicle.fuelMassKg) * environment.gravityMps2;
+  const initialPhase: TracePhase = initiallyPowered && !supportedAtStart ? 'poweredAscent' : 'pad';
+  const initial = {
+    ...initialVerticalState(vehicle, initiallyPowered),
+    phase: initialPhase,
+  } as const;
+  const collector = createCollector(traceEnabled, options.traceIntervalS, options.maxTraceSamples, initial);
   const events: FlightEvent[] = [];
 
   if (!initiallyPowered || vehicle.thrustN === 0) {
@@ -235,55 +324,87 @@ export function simulateVertical(
     });
   }
 
-  // A positive-gravity pad holds the rocket until thrust exceeds current
-  // weight. Fuel is still consumed while supported by the pad.
   let timeS = 0;
   let altitudeM = 0;
   let velocityMps = 0;
   let fuelKg = vehicle.fuelMassKg;
-  let phase: Exclude<TracePhase, 'result'> = 'pad';
+  let phase: Exclude<TracePhase, 'result'> = initialPhase === 'pad' ? 'pad' : 'poweredAscent';
   let burnoutTimeS: number | null = null;
   let maximumAltitudeM = 0;
+  let integrationSteps = 0;
+  const integrationBudget = Math.min(MAX_TRUSTED_INTEGRATION_STEPS, options.maxIntegrationSteps);
 
-  if (environment.gravityMps2 > 0 && vehicle.thrustN <= vehicle.dryMassKg * environment.gravityMps2) {
-    const burnTimeS = fuelKg / qKgPerS;
-    for (let sampleTimeS = options.traceIntervalS; sampleTimeS < burnTimeS - EPSILON; sampleTimeS += options.traceIntervalS) {
-      collector.add({ timeS: sampleTimeS, altitudeM: 0, velocityMps: 0, fuelKg: Math.max(0, fuelKg - qKgPerS * sampleTimeS), phase: 'pad' });
-    }
-    fuelKg = 0;
-    appendEvent(events, 'burnout', burnTimeS);
-    appendEvent(events, 'noLiftoff', burnTimeS);
-    return resultFor(vehicle, options, 'noLiftoff', 0, burnTimeS, fuelKg, burnTimeS, events, collector, {
-      timeS: burnTimeS,
-      altitudeM: 0,
-      velocityMps: 0,
-      fuelKg: 0,
+  const limitResult = (atTimeS: number, atAltitudeM: number, atVelocityMps: number, atFuelKg: number, reason: string): FlightResult => {
+    appendEvent(events, 'limit', atTimeS, reason);
+    return resultFor(vehicle, options, 'limit', maximumAltitudeM, atTimeS, atFuelKg, burnoutTimeS, events, collector, {
+      timeS: atTimeS,
+      altitudeM: Math.max(0, atAltitudeM),
+      velocityMps: atVelocityMps,
+      fuelKg: Math.max(0, atFuelKg),
       phase: 'result',
     });
+  };
+
+  // A positive-gravity pad holds the rocket until thrust exceeds current
+  // weight. Fuel is still consumed while supported by the pad. The interval
+  // is analytic, so a tiny trace interval cannot create an unbounded loop.
+  if (environment.gravityMps2 > 0 && vehicle.thrustN <= vehicle.dryMassKg * environment.gravityMps2) {
+    const burnTimeS = fuelKg / qKgPerS;
+    const padEndS = Math.min(burnTimeS, options.maxTimeS);
+    if (!collector.addPadSamples(padEndS, fuelKg, qKgPerS)) {
+      const atTimeS = Math.min(padEndS, collector.nextSampleTime);
+      return limitResult(atTimeS, 0, 0, Math.max(0, fuelKg - qKgPerS * atTimeS), 'trace sample budget exhausted during pad support');
+    }
+    if (burnTimeS <= options.maxTimeS) {
+      fuelKg = 0;
+      appendEvent(events, 'burnout', burnTimeS);
+      appendEvent(events, 'noLiftoff', burnTimeS);
+      return resultFor(vehicle, options, 'noLiftoff', 0, burnTimeS, fuelKg, burnTimeS, events, collector, {
+        timeS: burnTimeS,
+        altitudeM: 0,
+        velocityMps: 0,
+        fuelKg: 0,
+        phase: 'result',
+      });
+    }
+    return limitResult(options.maxTimeS, 0, 0, Math.max(0, fuelKg - qKgPerS * options.maxTimeS), 'simulation time limit reached during pad support');
   }
 
   if (environment.gravityMps2 > 0 && vehicle.thrustN < (vehicle.dryMassKg + fuelKg) * environment.gravityMps2) {
     const fuelAtLiftKg = vehicle.thrustN / environment.gravityMps2 - vehicle.dryMassKg;
     const padDurationS = (fuelKg - fuelAtLiftKg) / qKgPerS;
-    for (let sampleTimeS = options.traceIntervalS; sampleTimeS < padDurationS - EPSILON; sampleTimeS += options.traceIntervalS) {
-      collector.add({ timeS: sampleTimeS, altitudeM: 0, velocityMps: 0, fuelKg: Math.max(0, fuelKg - qKgPerS * sampleTimeS), phase: 'pad' });
+    if (padDurationS > options.maxTimeS) {
+      if (!collector.addPadSamples(options.maxTimeS, fuelKg, qKgPerS)) {
+        const atTimeS = Math.min(options.maxTimeS, collector.nextSampleTime);
+        return limitResult(atTimeS, 0, 0, Math.max(0, fuelKg - qKgPerS * atTimeS), 'trace sample budget exhausted during pad support');
+      }
+      return limitResult(options.maxTimeS, 0, 0, Math.max(0, fuelKg - qKgPerS * options.maxTimeS), 'simulation time limit reached during pad support');
+    }
+    if (!collector.addPadSamples(padDurationS, fuelKg, qKgPerS)) {
+      const atTimeS = Math.min(padDurationS, collector.nextSampleTime);
+      return limitResult(atTimeS, 0, 0, Math.max(0, fuelKg - qKgPerS * atTimeS), 'trace sample budget exhausted during pad support');
     }
     timeS = padDurationS;
     fuelKg = Math.max(0, fuelAtLiftKg);
     phase = 'poweredAscent';
-    collector.add({ timeS, altitudeM: 0, velocityMps: 0, fuelKg, phase });
-  } else {
-    phase = 'poweredAscent';
+    if (!collector.add({ timeS, altitudeM: 0, velocityMps: 0, fuelKg, phase })) {
+      return limitResult(timeS, 0, 0, fuelKg, 'trace sample budget exhausted at liftoff');
+    }
   }
 
-  while (timeS < options.maxTimeS - EPSILON) {
+  while (timeS < options.maxTimeS) {
+    if (integrationSteps >= integrationBudget) {
+      return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'integration step budget exhausted');
+    }
+    integrationSteps += 1;
+
     const powered = fuelKg > options.fuelEpsilonKg && qKgPerS > 0;
     const thrustN = powered ? vehicle.thrustN : 0;
     const remainingS = options.maxTimeS - timeS;
     const burnRemainingS = powered ? fuelKg / qKgPerS : Number.POSITIVE_INFINITY;
     const durationS = Math.min(options.dtS, remainingS, burnRemainingS);
-    if (!finite(durationS) || durationS <= 0) {
-      return invalidResult(vehicle, options);
+    if (!finite(durationS) || durationS <= 0 || timeS + durationS <= timeS) {
+      return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'integration time stopped advancing');
     }
 
     const massKg = vehicle.dryMassKg + fuelKg;
@@ -292,14 +413,7 @@ export function simulateVertical(
     const midpointAltitudeM = altitudeM + velocityMps * durationS / 2;
     const midpointVelocityMps = velocityMps + a0 * durationS / 2;
     const midpointMassKg = vehicle.dryMassKg + midpointFuelKg;
-    const am = accelerationMps2(
-      midpointAltitudeM,
-      midpointVelocityMps,
-      midpointMassKg,
-      thrustN,
-      vehicle,
-      environment,
-    );
+    const am = accelerationMps2(midpointAltitudeM, midpointVelocityMps, midpointMassKg, thrustN, vehicle, environment);
     const nextAltitudeM = altitudeM + midpointVelocityMps * durationS;
     const nextVelocityMps = velocityMps + am * durationS;
     const nextFuelKg = powered ? Math.max(0, fuelKg - qKgPerS * durationS) : fuelKg;
@@ -361,24 +475,21 @@ export function simulateVertical(
     velocityMps = nextVelocityMps;
     fuelKg = nextFuelKg <= options.fuelEpsilonKg ? 0 : nextFuelKg;
     maximumAltitudeM = Math.max(maximumAltitudeM, altitudeM);
-    collector.sampleStep({ timeS, altitudeM, velocityMps, fuelKg, phase });
+    if (!collector.sampleStep({ timeS, altitudeM, velocityMps, fuelKg, phase })) {
+      return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'trace sample budget exhausted');
+    }
 
     if (burnoutAtEnd) {
       fuelKg = 0;
       phase = 'coast';
       burnoutTimeS = timeS;
       appendEvent(events, 'burnout', timeS);
-      collector.add({ timeS, altitudeM, velocityMps, fuelKg, phase });
+      if (!collector.add({ timeS, altitudeM, velocityMps, fuelKg, phase })) {
+        return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'trace sample budget exhausted at burnout');
+      }
     }
     if (phase === 'poweredAscent' && !powered) phase = 'coast';
   }
 
-  appendEvent(events, 'limit', timeS);
-  return resultFor(vehicle, options, 'limit', maximumAltitudeM, timeS, fuelKg, burnoutTimeS, events, collector, {
-    timeS,
-    altitudeM,
-    velocityMps,
-    fuelKg,
-    phase: 'result',
-  });
+  return limitResult(timeS, altitudeM, velocityMps, fuelKg, 'simulation time limit reached');
 }

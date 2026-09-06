@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (public).
 
-**Current state:** Phase 1 first playable launch and deployment correction. The fixed starter rocket can be launched, observed through ignition, powered ascent, burnout and coast, then replayed with a session record. Phase 2 adds Credits, upgrades and saves.
+**Current state:** Phase 2 controller/UI integration candidate. The public `main` deployment remains the accepted Phase 1 first-playable build until this branch's verification and Pages publication are complete.
 
 ## Project record
 
@@ -13,13 +13,16 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Balance and pacing](docs/BALANCE.md)
 - [Software architecture](docs/ARCHITECTURE.md)
 - [Roadmap and current state](docs/ROADMAP.md)
+- [Phase 1 audit and Phase 2 implementation specification](docs/PHASE_2_SPEC.md)
+- [Phase 2 implementation checkpoint](docs/PHASE_2_IMPLEMENTATION.md)
+- [Phase 2 focused P0 review](docs/PHASE_2_P0_REVIEW.md)
 - [Instructions for every agent](AGENTS.md)
 
 ## Play online
 
 [Open the live Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-This is the live GitHub Pages URL. The public repository's deployment workflow enables Pages and publishes the `main` branch at this repository-subpath URL using **GitHub Actions**. The deployment and a first launch were verified in a browser on 2026-09-05.
+This URL is the accepted live Phase 1 build while Phase 2 integration is being verified. The public repository's deployment workflow publishes `main` at this repository-subpath URL using **GitHub Actions**. After the Phase 2 pull request is merged, the same link will serve the verified Phase 2 build.
 
 ## Development
 
@@ -51,6 +54,6 @@ To verify the GitHub Pages repository-subpath bundle locally:
 npm run test:e2e:pages
 ```
 
-That command builds with `/Escape-Velocity/` as Vite’s base, serves the result, and checks the same URL shape used by GitHub Pages. The production TypeScript report sweeps 729 opening rocket builds at two timesteps and models two purchasing strategies. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
+That command builds with `/Escape-Velocity/` as Vite’s base, serves the result, and checks the same URL shape used by GitHub Pages. The production TypeScript report sweeps 729 opening rocket builds at nominal and seeded variance endpoints, checks timestep convergence, and models six explicitly named purchasing strategies. See [report](docs/balance-report.json) and [balance configuration](balance/opening.json). Minor cross-platform floating-point differences should be assessed against documented tolerances, not blindly accepted.
 
 The browser smoke tests use an injected presentation clock for deterministic CI state transitions; normal play uses foreground wall time and pauses when the tab is hidden. If a JavaScript bundle cannot load or React fails during boot, the page shows a recovery message with a refresh action instead of remaining blank.

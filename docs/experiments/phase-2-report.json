@@ -1,0 +1,391 @@
+{
+  "reviewedCommit": "87cbc30",
+  "candidate": {
+    "balanceVersion": "opening-v2",
+    "baseBalanceVersion": "opening-v1",
+    "physicalUpgradeChanges": "none",
+    "incomeChanges": "none",
+    "milestoneRewardsEnabled": false,
+    "ignition": {
+      "delaysS": [
+        1.5,
+        1,
+        0.6,
+        0.3,
+        0.1
+      ],
+      "baseCost": 8
+    },
+    "variance": {
+      "version": "engine-variation-v1",
+      "amplitude": 0.006,
+      "distribution": "sum-of-two-uniforms-minus-one",
+      "prng": "mulberry32-v1"
+    },
+    "campaign": {
+      "decisionTimeS": 4,
+      "maxLaunches": 300,
+      "replicates": 32
+    }
+  },
+  "conditions": {
+    "testVectors": [
+      {
+        "seed": 0,
+        "k": 0.9956005537263117
+      },
+      {
+        "seed": 1,
+        "k": 0.9977788579706103
+      },
+      {
+        "seed": 42,
+        "k": 1.0002963658655062
+      },
+      {
+        "seed": 4294967295,
+        "k": 1.000515405225102
+      }
+    ],
+    "starter": {
+      "nominalM": 160.17031095948974,
+      "boundsM": [
+        157.28309461879522,
+        163.0706304411864
+      ],
+      "meanM": 160.17120899764626,
+      "p05M": 158.20945193108756,
+      "p95M": 162.10770082528063,
+      "sampleMinM": 157.3671708365627,
+      "sampleMaxM": 163.02735648068588
+    },
+    "envelope": {
+      "builds": 729,
+      "minDeltaPct": -2.8668239121838135,
+      "maxDeltaPct": 2.870799906164323,
+      "worstBuild": {
+        "engine": 0,
+        "fuel": 8,
+        "airframe": 0,
+        "ignition": 0
+      },
+      "worstDtM": 0.00005874285545814928,
+      "minTwr": 1.1017368648913703,
+      "negativeEdges": 0,
+      "minEdgePct": 0.1890826832256387
+    }
+  },
+  "campaignAssumptions": "No milestone grants; 1x; 4 s review per launch including all purchases; 32 seeds per policy. Buy affordable options repeatedly with fresh marginal scores. physical_gain omits ignition. ignition_first and engine_first save until their preferred system is capped, then cheapest. throughput uses positive or negative marginal rounded reward per second; random has an independent choice stream. Completion is final purchase, not subsequent demonstration flight.",
+  "campaigns": {
+    "cheapest": {
+      "representativeSeed1": {
+        "launches": 56,
+        "minutes": 18.832746,
+        "after5": 290.063758,
+        "milestones": {
+          "500": {
+            "launches": 13,
+            "minutes": 3.385759
+          },
+          "1000": {
+            "launches": 27,
+            "minutes": 7.903363
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 1107.662766,
+            "levels": {
+              "engine": 6,
+              "fuel": 5,
+              "airframe": 6,
+              "ignition": 4
+            }
+          },
+          "15": {
+            "altitudeM": 1369.882367,
+            "levels": {
+              "engine": 7,
+              "fuel": 6,
+              "airframe": 8,
+              "ignition": 4
+            }
+          }
+        },
+        "maxWait": 3,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 4
+        }
+      },
+      "completionMinutes": {
+        "min": 18.824259,
+        "median": 18.83007,
+        "max": 18.835721
+      }
+    },
+    "physical_gain": {
+      "representativeSeed1": {
+        "launches": 52,
+        "minutes": 19.248406,
+        "after5": 350.03989,
+        "milestones": {
+          "500": {
+            "launches": 8,
+            "minutes": 2.252474
+          },
+          "1000": {
+            "launches": 23,
+            "minutes": 7.461376
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 1099.205506,
+            "levels": {
+              "engine": 6,
+              "fuel": 5,
+              "airframe": 6,
+              "ignition": 0
+            }
+          },
+          "15": {
+            "altitudeM": 1417.080522,
+            "levels": {
+              "engine": 7,
+              "fuel": 7,
+              "airframe": 7,
+              "ignition": 0
+            }
+          }
+        },
+        "maxWait": 3,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 0
+        }
+      },
+      "completionMinutes": {
+        "min": 19.191369,
+        "median": 19.250831,
+        "max": 19.729233
+      }
+    },
+    "throughput": {
+      "representativeSeed1": {
+        "launches": 56,
+        "minutes": 18.582619,
+        "after5": 254.168759,
+        "milestones": {
+          "500": {
+            "launches": 13,
+            "minutes": 3.262154
+          },
+          "1000": {
+            "launches": 29,
+            "minutes": 8.402629
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 1117.446612,
+            "levels": {
+              "engine": 5,
+              "fuel": 5,
+              "airframe": 7,
+              "ignition": 4
+            }
+          },
+          "15": {
+            "altitudeM": 1369.882367,
+            "levels": {
+              "engine": 7,
+              "fuel": 6,
+              "airframe": 8,
+              "ignition": 4
+            }
+          }
+        },
+        "maxWait": 3,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 4
+        }
+      },
+      "completionMinutes": {
+        "min": 18.575105,
+        "median": 18.58196,
+        "max": 18.973709
+      }
+    },
+    "ignition_first": {
+      "representativeSeed1": {
+        "launches": 57,
+        "minutes": 18.898385,
+        "after5": 159.690622,
+        "milestones": {
+          "500": {
+            "launches": 14,
+            "minutes": 3.451312
+          },
+          "1000": {
+            "launches": 28,
+            "minutes": 7.969417
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 1107.108367,
+            "levels": {
+              "engine": 6,
+              "fuel": 5,
+              "airframe": 6,
+              "ignition": 4
+            }
+          },
+          "15": {
+            "altitudeM": 1373.264905,
+            "levels": {
+              "engine": 7,
+              "fuel": 6,
+              "airframe": 8,
+              "ignition": 4
+            }
+          }
+        },
+        "maxWait": 3,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 4
+        }
+      },
+      "completionMinutes": {
+        "min": 18.889995,
+        "median": 18.895904,
+        "max": 18.902078
+      }
+    },
+    "engine_first": {
+      "representativeSeed1": {
+        "launches": 66,
+        "minutes": 19.459287,
+        "after5": 241.654543,
+        "milestones": {
+          "500": {
+            "launches": 34,
+            "minutes": 8.287703
+          },
+          "1000": {
+            "launches": 45,
+            "minutes": 11.631948
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 792.367381,
+            "levels": {
+              "engine": 8,
+              "fuel": 3,
+              "airframe": 3,
+              "ignition": 4
+            }
+          },
+          "15": {
+            "altitudeM": 1359.954944,
+            "levels": {
+              "engine": 8,
+              "fuel": 6,
+              "airframe": 7,
+              "ignition": 4
+            }
+          }
+        },
+        "maxWait": 6,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 4
+        }
+      },
+      "completionMinutes": {
+        "min": 19.383713,
+        "median": 19.39162,
+        "max": 19.461497
+      }
+    },
+    "random": {
+      "representativeSeed1": {
+        "launches": 56,
+        "minutes": 19.007037,
+        "after5": 254.168759,
+        "milestones": {
+          "500": {
+            "launches": 13,
+            "minutes": 3.388401
+          },
+          "1000": {
+            "launches": 27,
+            "minutes": 7.920107
+          }
+        },
+        "atTime": {
+          "10": {
+            "altitudeM": 1158.337868,
+            "levels": {
+              "engine": 5,
+              "fuel": 6,
+              "airframe": 6,
+              "ignition": 4
+            }
+          },
+          "15": {
+            "altitudeM": 1369.882367,
+            "levels": {
+              "engine": 7,
+              "fuel": 6,
+              "airframe": 8,
+              "ignition": 4
+            }
+          }
+        },
+        "maxWait": 3,
+        "levels": {
+          "engine": 8,
+          "fuel": 8,
+          "airframe": 8,
+          "ignition": 4
+        }
+      },
+      "completionMinutes": {
+        "min": 18.678457,
+        "median": 18.896882,
+        "max": 19.247894
+      }
+    }
+  },
+  "padLimitReproductions": [
+    {
+      "thrustN": 70,
+      "maxTimeS": 0.1,
+      "outcome": "noLiftoff",
+      "actualTimeS": 11.428571428571429,
+      "initialPhase": "poweredAscent"
+    },
+    {
+      "thrustN": 90,
+      "maxTimeS": 0.1,
+      "outcome": "limit",
+      "actualTimeS": 3.6557959253273093,
+      "initialPhase": "poweredAscent"
+    }
+  ]
+}

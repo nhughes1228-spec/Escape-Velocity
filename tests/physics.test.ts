@@ -98,6 +98,10 @@ describe('vertical-v1 solver', () => {
     expect(invalid.outcome).toBe('invalid');
     expect(invalid.events).toEqual([{ type: 'invalid', timeS: 0 }]);
 
+    const nullVehicle = simulateVertical(null as unknown as VehicleSpec, environment, options);
+    expect(nullVehicle.outcome).toBe('invalid');
+    expect(nullVehicle.events).toEqual([{ type: 'invalid', timeS: 0 }]);
+
     const limit = simulateVertical(
       { ...starter, dryMassKg: 1, fuelMassKg: 1, thrustN: 10, dragAreaM2: 0 },
       { gravityMps2: 0, radiusM: 6371000, densityKgM3: 0, scaleHeightM: 8500 },
@@ -105,6 +109,89 @@ describe('vertical-v1 solver', () => {
     );
     expect(limit.outcome).toBe('limit');
     expect(limit.events.at(-1)?.type).toBe('limit');
+  });
+
+  it('bounds supported-pad time and trace work by the requested limits', () => {
+    const shortPadOptions = { ...options, maxTimeS: 0.1 };
+    for (const thrustN of [70, 90]) {
+      const result = simulateVertical({ ...starter, thrustN }, environment, shortPadOptions);
+      expect(result.outcome).toBe('limit');
+      expect(result.terminalTimeS).toBeCloseTo(0.1, 12);
+      expect(result.terminalFuelKg).toBeGreaterThan(0);
+      expect(result.trace.every((sample) => sample.phase === 'pad' || sample.phase === 'result')).toBe(true);
+    }
+
+    const supportedBurnTimeS = 2 / (70 / 400);
+    const exactCap = simulateVertical(
+      { ...starter, thrustN: 70 },
+      environment,
+      { ...options, maxTimeS: supportedBurnTimeS },
+    );
+    expect(exactCap.outcome).toBe('noLiftoff');
+    expect(exactCap.terminalTimeS).toBeCloseTo(supportedBurnTimeS, 12);
+    expect(exactCap.events.map((event) => event.type)).toEqual(['burnout', 'noLiftoff']);
+
+    const delayedLift = simulateVertical({ ...starter, thrustN: 90 }, environment, { ...options, maxTimeS: 20 });
+    expect(delayedLift.outcome).toBe('apogee');
+    expect(delayedLift.trace[0]?.phase).toBe('pad');
+    expect(delayedLift.trace.some((sample) => sample.phase === 'poweredAscent')).toBe(true);
+
+    const traceOff = simulateVertical({ ...starter, thrustN: 90 }, environment, {
+      ...options,
+      traceIntervalS: Number.MIN_VALUE,
+      collectTrace: false,
+      maxTraceSamples: 1,
+    });
+    expect(traceOff.outcome).toBe('apogee');
+    expect(traceOff.trace).toEqual([]);
+
+    const traceBudget = simulateVertical(starter, environment, {
+      ...options,
+      traceIntervalS: 0.001,
+      maxTraceSamples: 4,
+    });
+    expect(traceBudget.outcome).toBe('limit');
+    expect(traceBudget.trace.length).toBeLessThanOrEqual(4);
+    expect(traceBudget.events.at(-1)?.reason).toMatch(/trace sample budget/);
+
+    const terminalTraceBudget = simulateVertical(starter, environment, {
+      ...options,
+      traceIntervalS: 100,
+      maxTraceSamples: 1,
+    });
+    expect(terminalTraceBudget.outcome).toBe('limit');
+    expect(terminalTraceBudget.trace).toHaveLength(1);
+    expect(terminalTraceBudget.events.filter((event) => event.type === 'limit')).toHaveLength(1);
+    expect(terminalTraceBudget.events.at(-1)?.reason).toMatch(/trace sample budget/);
+
+    const stepBudget = simulateVertical(starter, environment, {
+      ...options,
+      maxIntegrationSteps: 1,
+    });
+    expect(stepBudget.outcome).toBe('limit');
+    expect(stepBudget.events.at(-1)?.reason).toMatch(/integration step budget/);
+
+    for (const thrustN of [starter.thrustN, 70]) {
+      const pathological = simulateVertical({ ...starter, thrustN }, environment, {
+        ...options,
+        maxTimeS: 0.1,
+        maxIntegrationSteps: 2,
+        maxTraceSamples: 2,
+        traceIntervalS: 1e-300,
+      });
+      expect(pathological.outcome).toBe('limit');
+      expect(pathological.terminalTimeS).toBeLessThanOrEqual(0.1);
+      expect(pathological.trace.length).toBeLessThanOrEqual(2);
+      expect(pathological.events.filter((event) => event.type === 'limit')).toHaveLength(1);
+    }
+
+    const hugeRequestedBudgets = simulateVertical(starter, environment, {
+      ...options,
+      maxIntegrationSteps: Number.MAX_SAFE_INTEGER,
+      maxTraceSamples: Number.MAX_SAFE_INTEGER,
+      collectTrace: false,
+    });
+    expect(hugeRequestedBudgets.outcome).toBe('apogee');
   });
 
   it('covers the full opening envelope and remains convergent', () => {

@@ -1,6 +1,8 @@
 # Escape Velocity — game design
 
-Status: foundation specification, 2026-09-05. Opening rules are specified; later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
+> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the controller, UI, domain and save implementation. The accepted public `main` build remains Phase 1 until the integrated candidate is verified and published. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
+
+Status: opening rules plus Phase 2 integrated candidate, 2026-09-05. Later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
 
 ## Fantasy and core loop
 
@@ -16,9 +18,9 @@ The starter launch takes about 1.5 seconds to ignite and 8.74 seconds to apogee.
 
 All four cards exist in the opening but advanced diagnostic detail is optional and unlocked when useful. Engine means stronger push with greater fuel flow and engine mass. Fuel Tank means more fuel and a heavier tank. Airframe means less structure mass and less drag. Ignition means a shorter preflight wait, with no change to flight physics.
 
-## Phase 2 requirements from Phase 1 playtest
+## Phase 2 requirements and current checkpoint
 
-These are requirements for the next design and implementation review, not Phase 1 behavior. Phase 1 intentionally keeps the level-zero starter fixed and does not expose Credits, purchases or save/load.
+These were requirements from the Phase 1 playtest. The controller, domain, settlement, save system and focused UI now implement them on this Phase 2 integration branch; the public level-zero deployment remains Phase 1 until release verification is complete.
 
 Phase 2 must make the incremental loop playable: **launch → reach apogee → earn Credits → purchase an upgrade → improve the rocket → launch again**. A completed valid flight must settle its reward from the authoritative result, and a purchased Engine, Fuel Tank, Airframe or Ignition level must produce a visible, understandable consequence on the next launch. The loop must preserve free retries and must not require a separate fuel-purchase step.
 
@@ -32,13 +34,13 @@ Engine changes thrust, effective exhaust speed and engine mass together. Tank ch
 
 ## Flight lifecycle
 
-Ready → ignition → powered ascent → coast → result → ready. Only one flight exists at once. Freeze the launch configuration on click; purchases are unavailable until result. The pad supports rockets that initially cannot lift while fuel burns. Failed liftoff, impact, invalid simulation and safety-limit outcomes have distinct explanations. Valid apogee ends the opening flight; recovery is abstracted. No random failures, weather, manual steering or timing minigame in the opening.
+Ready → ignition → powered ascent → coast → result → ready. Replay is a separate unpaid playback mode. Only one flight exists at once. Freeze the launch configuration on click; purchases are unavailable until result. The pad supports rockets that initially cannot lift while fuel burns. Failed liftoff, impact, invalid simulation and safety-limit outcomes have distinct explanations. Valid apogee ends the opening flight; recovery is abstracted. Seeded engine-performance variance is deterministic from the stored recipe; it does not add random failures, weather, manual steering or a timing minigame.
 
 Compute physics independently of animation. Awards occur when the terminal result is presented and settled, never from the visual height or a frame callback. Aborting/reloading an unsettled flight awards nothing and costs nothing. Records use unrounded meters; UI rounding must never grant thresholds early.
 
 ## Currency and rewards
 
-Credits are the sole spendable resource. Repeat flights pay based on achieved altitude, including flights below the record. There is no all-time-best multiplier, passive income, launch fee or early offline income. One-time milestone grants accelerate transitions; repeat rewards maintain a path forward. Purchases and award settlement are atomic, idempotent game-state transitions. Formula and first milestones live in [BALANCE](BALANCE.md).
+Credits are the sole spendable resource. In the Phase 2 checkpoint, repeat flights pay based on achieved altitude, including flights below the record. There is no all-time-best multiplier, passive income, launch fee or early offline income. Phase 3 milestone grants remain dormant and are not included in Phase 2 settlement. Purchases and award settlement are atomic, idempotent game-state transitions. Formula and first milestones live in [BALANCE](BALANCE.md).
 
 Do not add “science,” “prestige points” or mission tokens to gate a menu. An eventual resource requires a distinct decision that Credits cannot express and a documented design review.
 

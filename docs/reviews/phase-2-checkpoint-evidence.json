@@ -1,0 +1,126 @@
+{
+  "reviewedCommit": "1c9156c",
+  "corruptBefore": {
+    "kind": "recovery",
+    "message": "Save schemaVersion is unsupported.",
+    "protectedPrimaryRaw": "{\"gameId\":\"escape-velocity\",\"schemaVersion\":999,\"progress\":\"irreplaceable future data\"}",
+    "backupAvailable": false
+  },
+  "corruptAfter": {
+    "persistence": {
+      "kind": "saved",
+      "message": null,
+      "protectedPrimaryRaw": null,
+      "backupAvailable": false
+    },
+    "rawPreserved": false,
+    "backup": null,
+    "exportPreserved": false
+  },
+  "rejectedSeed": {
+    "calls": 2,
+    "rejected": false,
+    "started": 1
+  },
+  "resetCallback": {
+    "old": [
+      1,
+      1
+    ],
+    "current": [
+      1,
+      1
+    ],
+    "accepted": true,
+    "credits": 19
+  },
+  "invalidCountsAccepted": true,
+  "stale": {
+    "accepted": false,
+    "kind": "conflict",
+    "rawPreserved": true,
+    "engine": 1
+  },
+  "badImport": {
+    "credits": 19,
+    "exportIsBad": true,
+    "primaryStillValid": true
+  },
+  "readFailure": {
+    "erased": true,
+    "storedCredits": 0,
+    "kind": "saved"
+  },
+  "mutableResult": {
+    "credits": 383,
+    "record": 100000,
+    "persistence": "not-saved"
+  },
+  "nullHandled": "TypeError: Cannot read properties of null (reading 'fuelMassKg')",
+  "terminalEvents": {
+    "outcome": "limit",
+    "events": [
+      {
+        "type": "burnout",
+        "timeS": 4.99999999999999
+      },
+      {
+        "type": "limit",
+        "timeS": 4.99999999999999,
+        "reason": "trace sample budget exhausted at burnout"
+      },
+      {
+        "type": "limit",
+        "timeS": 4.99999999999999,
+        "reason": "trace sample budget exhausted at terminal sample"
+      }
+    ]
+  },
+  "padCaps": [
+    {
+      "thrustN": 70,
+      "outcome": "limit",
+      "t": 0.1,
+      "fuel": 1.9825
+    },
+    {
+      "thrustN": 90,
+      "outcome": "limit",
+      "t": 0.1,
+      "fuel": 1.9775
+    }
+  ],
+  "revisionOverflow": {
+    "accepted": true,
+    "motion": "reduced",
+    "persistence": "not-saved"
+  },
+  "traceWork": [
+    {
+      "mode": "normal",
+      "timedOut": false,
+      "status": 0,
+      "output": "{\"outcome\":\"limit\",\"samples\":2}"
+    },
+    {
+      "mode": "flight",
+      "timedOut": true,
+      "status": null,
+      "output": ""
+    },
+    {
+      "mode": "pad",
+      "timedOut": true,
+      "status": null,
+      "output": ""
+    }
+  ],
+  "endpointConvergence": {
+    "configurations": 729,
+    "conditions": 3,
+    "comparisons": 2187,
+    "nonApogee": 0,
+    "worstAltitudeM": 0.00005874285545814928,
+    "worstTimeS": 0.0000014418426097506654
+  }
+}

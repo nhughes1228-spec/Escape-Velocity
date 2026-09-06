@@ -33,6 +33,10 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test -- --run
       - name: Build and verify repository-subpath bundle
         run: npm run test:e2e:pages
       - name: Upload Pages artifact

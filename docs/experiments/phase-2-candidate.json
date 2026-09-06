@@ -1,0 +1,10 @@
+{
+  "balanceVersion": "opening-v2",
+  "baseBalanceVersion": "opening-v1",
+  "physicalUpgradeChanges": "none",
+  "incomeChanges": "none",
+  "milestoneRewardsEnabled": false,
+  "ignition": {"delaysS": [1.5, 1.0, 0.6, 0.3, 0.1], "baseCost": 8},
+  "variance": {"version": "engine-variation-v1", "amplitude": 0.006, "distribution": "sum-of-two-uniforms-minus-one", "prng": "mulberry32-v1"},
+  "campaign": {"decisionTimeS": 4, "maxLaunches": 300, "replicates": 32}
+}

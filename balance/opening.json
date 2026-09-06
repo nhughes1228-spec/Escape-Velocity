@@ -1,17 +1,18 @@
 {
-  "balanceVersion": "opening-v1",
-  "modelVersion": "vertical-v1",
+  "balanceVersion": "opening-v2",
+  "modelVersion": "vertical-v1.1",
   "environment": {"gravityMps2": 9.80665, "radiusM": 6371000, "densityKgM3": 1.225, "scaleHeightM": 8500},
-  "simulation": {"dtS": 0.008333333333333333, "maxTimeS": 1200, "fuelEpsilonKg": 1e-10, "traceIntervalS": 0.1},
+  "simulation": {"dtS": 0.008333333333333333, "maxTimeS": 1200, "fuelEpsilonKg": 1e-10, "traceIntervalS": 0.1, "maxIntegrationSteps": 300000, "maxTraceSamples": 20000},
   "vehicle": {"structureKg": 6, "engineKg": 2, "fuelKg": 2, "thrustN": 160, "exhaustVelocityMps": 400, "dragAreaM2": 0.012},
   "upgrades": {
     "engine": {"cap": 8, "baseCost": 14, "thrustPerLevel": 0.18, "exhaustPerLevel": 0.035, "massKgPerLevel": 0.12},
     "fuel": {"cap": 8, "baseCost": 16, "capacityPerLevel": 0.22, "tankKgPerLevel": 0.15},
     "airframe": {"cap": 8, "baseCost": 12, "massDivisorPerLevel": 0.10, "dragDivisorPerLevel": 0.12},
-    "ignition": {"cap": 4, "baseCost": 30, "initialDelayS": 1.5, "reductionSPerLevel": 0.3, "minimumDelayS": 0.3}
+    "ignition": {"cap": 4, "baseCost": 8, "delaysS": [1.5, 1.0, 0.6, 0.3, 0.1]}
   },
   "costCurve": {"linear": 0.6, "quadratic": 0.18},
   "income": {"baseCredits": 4, "sqrtAltitudeCoefficient": 1.2},
+  "variance": {"varianceVersion": "engine-variation-v1", "prngVersion": "mulberry32-v1", "amplitude": 0.006},
   "milestones": [
     {"id": "altitude-100m", "altitudeM": 100, "credits": 0},
     {"id": "altitude-500m", "altitudeM": 500, "credits": 35},

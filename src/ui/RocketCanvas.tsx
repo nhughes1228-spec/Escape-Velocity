@@ -1,18 +1,21 @@
 import { useEffect, useRef } from 'react';
 import type { TraceSample } from '../simulation/types';
+import type { RocketLevels } from '../game/vehicle';
 import { visibleTrace } from '../presentation/trace';
-import { altitudeToCanvasY, createAltitudeScale } from '../presentation/altitudeScale';
+import { altitudeToCanvasY, cameraMaxAltitudeM, createAltitudeScale, rocketAnchorHeightPx } from '../presentation/altitudeScale';
 
 interface RocketCanvasProps {
   trace: TraceSample[];
   current: TraceSample;
   recordM: number;
+  nominalPeakM: number;
   simulationTimeS: number;
   showFullTrace: boolean;
   reducedMotion: boolean;
-  status: 'ready' | 'ignition' | 'playing' | 'result';
+  status: 'ready' | 'ignition' | 'playing' | 'replay' | 'result';
   ignitionElapsedS: number;
   ignitionProgress: number;
+  levels: RocketLevels;
 }
 
 function altitudeLabel(valueM: number): string {
@@ -23,18 +26,21 @@ export function RocketCanvas({
   trace,
   current,
   recordM,
+  nominalPeakM,
   simulationTimeS,
   showFullTrace,
   reducedMotion,
   status,
   ignitionElapsedS,
   ignitionProgress,
+  levels,
 }: RocketCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const draw = () => {
     const bounds = canvas.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(320, bounds.width);
@@ -47,10 +53,13 @@ export function RocketCanvas({
     context.clearRect(0, 0, width, height);
 
     const shownTrace = showFullTrace ? trace : visibleTrace(trace, simulationTimeS);
-    const tracePeak = trace.reduce((peak, sample) => Math.max(peak, sample.altitudeM), 0);
-    const scaleMaxM = Math.max(250, recordM * 1.15, current.altitudeM * 1.2, tracePeak * 1.15);
-    const altitudeScale = createAltitudeScale(height, scaleMaxM);
-    const { groundY, skyTopY } = altitudeScale;
+    // Camera framing is based on nominal capability and record, not the
+    // hidden actual peak of a seeded launch. Keep the range in stable 100 m
+    // bands so same-build launches remain visually comparable.
+    const bodyHeight = 58 + Math.min(10, levels.fuel * 1.25);
+    const scaleMaxM = cameraMaxAltitudeM(recordM, nominalPeakM);
+    const altitudeScale = createAltitudeScale(height, scaleMaxM, rocketAnchorHeightPx(bodyHeight));
+    const { groundY } = altitudeScale;
     const x = width * 0.5;
     const yForAltitude = (altitudeM: number) => altitudeToCanvasY(altitudeM, altitudeScale);
 
@@ -126,10 +135,8 @@ export function RocketCanvas({
     // specification and never reads canvas dimensions or pixels. The fin tips
     // are the visual altitude anchor, so the same y-coordinate also drives the
     // ruler, trace, current-altitude guide and numeric telemetry.
-    const bodyWidth = 26;
-    const bodyHeight = 58;
+    const bodyWidth = 26 + Math.min(9, levels.airframe * 1.1);
     const rocketBaseOffset = bodyHeight / 2 + 12;
-    const rocketNoseOffset = bodyHeight / 2 + 17;
     const ignitionJitter = status === 'ignition' && !reducedMotion
       ? Math.sin(ignitionElapsedS * 34) * (0.7 + ignitionProgress * 1.5)
       : 0;
@@ -154,13 +161,12 @@ export function RocketCanvas({
       context.restore();
     }
 
+    // The shared scale reserves the complete silhouette headroom. Do not
+    // clamp the rocket independently, or its anchor would disagree with the
+    // ruler and guide near the top of the range.
     const rocketCenterY = currentAltitudeY - rocketBaseOffset;
-    const boundedRocketCenterY = Math.max(
-      skyTopY + rocketNoseOffset,
-      Math.min(groundY - rocketBaseOffset, rocketCenterY),
-    );
     context.save();
-    context.translate(x + ignitionJitter, boundedRocketCenterY);
+    context.translate(x + ignitionJitter, rocketCenterY);
     context.fillStyle = '#d8e8e6';
     context.beginPath();
     context.moveTo(0, -bodyHeight / 2 - 17);
@@ -186,7 +192,7 @@ export function RocketCanvas({
     context.lineTo(bodyWidth / 2, bodyHeight / 2 + 8);
     context.fill();
 
-    const powered = status === 'playing' && current.phase === 'poweredAscent';
+    const powered = (status === 'playing' || status === 'replay') && current.phase === 'poweredAscent';
     const ignition = status === 'ignition';
     if (powered || ignition) {
       const flameHeight = powered
@@ -209,7 +215,16 @@ export function RocketCanvas({
     context.textAlign = 'center';
     context.font = '600 12px Inter, system-ui, sans-serif';
     context.fillText(`${altitudeLabel(current.altitudeM)}  ·  ${current.velocityMps.toFixed(1)} m/s`, x, height - 17);
-  }, [trace, current, recordM, simulationTimeS, showFullTrace, reducedMotion, status, ignitionElapsedS, ignitionProgress]);
+    };
+    draw();
+    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(draw);
+    resizeObserver?.observe(canvas);
+    window.addEventListener('resize', draw);
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', draw);
+    };
+  }, [trace, current, recordM, nominalPeakM, simulationTimeS, showFullTrace, reducedMotion, status, ignitionElapsedS, ignitionProgress]);
 
   return <canvas ref={canvasRef} className="flight-canvas" role="img" aria-label="Rocket flight view with height ruler and record marker" />;
 }
