@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { openingBalance } from '../config/opening';
 import { deriveVehicle, type RocketLevels } from '../game/vehicle';
 import { canPurchaseUpgrade, upgradeCardsFor } from '../game/selectors';
@@ -82,6 +82,9 @@ export function App() {
   const [recentMode, setRecentMode] = useState<'new' | 'replay'>('new');
   const [newGameOpen, setNewGameOpen] = useState(false);
   const [purchasedKind, setPurchasedKind] = useState<typeof upgradeCards[number]['kind'] | null>(null);
+  const newGameDialogRef = useRef<HTMLElement>(null);
+  const newGameCancelRef = useRef<HTMLButtonElement>(null);
+  const newGameTriggerRef = useRef<HTMLButtonElement>(null);
 
   const playback = usePlayback(state.activeLaunch, (runId, playbackId) => {
     const active = gameStore.getState().activeLaunch;
@@ -135,6 +138,57 @@ export function App() {
   const isActive = state.status === 'ignition' || state.status === 'playing' || state.status === 'replay';
   const isReplay = state.status === 'replay' || recentMode === 'replay';
   const reducedMotion = effectiveReducedMotion(state.settings.motion, systemReduced);
+
+  const restoreNewGameFocus = () => {
+    window.requestAnimationFrame(() => newGameTriggerRef.current?.focus());
+  };
+
+  const closeNewGame = () => {
+    setNewGameOpen(false);
+    setSettingsNotice(null);
+    restoreNewGameFocus();
+  };
+
+  useEffect(() => {
+    if (!newGameOpen) return;
+    const dialog = newGameDialogRef.current;
+    newGameCancelRef.current?.focus();
+    if (!dialog) return;
+
+    const focusableSelector = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeNewGame();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [newGameOpen]);
+
   const upgradeCards = useMemo(() => upgradeCardsFor(state), [state]);
   const latestSummary = state.lastLaunch?.status === 'settled' ? state.lastLaunch.summary : null;
   const hasCompletedAllUpgrades = upgradeCards.every((card) => card.level === card.cap);
@@ -231,6 +285,7 @@ export function App() {
       setRecentMode('new');
       setPurchasedKind(null);
       setNewGameOpen(false);
+      restoreNewGameFocus();
     }
   };
 
@@ -245,7 +300,7 @@ export function App() {
         <div className="header-right">
           <div className="header-actions" aria-label="Game actions">
             <button type="button" className="header-button" onClick={openSettings} aria-controls="settings-content">Settings</button>
-            <button type="button" className="header-button header-button-danger" onClick={openNewGame} disabled={isActive} aria-describedby="new-game-help" title={isActive ? 'New game is unavailable during a launch.' : undefined}>New game</button>
+            <button ref={newGameTriggerRef} type="button" className="header-button header-button-danger" onClick={openNewGame} disabled={isActive} aria-describedby="new-game-help" title={isActive ? 'New game is unavailable during a launch.' : undefined}>New game</button>
             <span id="new-game-help" className="sr-only">New game clears Credits, upgrades and records after confirmation.</span>
           </div>
           <div className="header-stats">
@@ -260,13 +315,13 @@ export function App() {
 
       {newGameOpen && (
         <div className="dialog-backdrop">
-          <section className="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="new-game-heading">
+          <section ref={newGameDialogRef} className="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="new-game-heading">
             <p className="eyebrow">FRESH FLIGHT PROGRAM</p>
             <h2 id="new-game-heading">Start a new game?</h2>
             <p>This clears your Credits, upgrades, personal best and flight log from this browser. Your current save can be exported first.</p>
             <div className="dialog-actions">
               <button type="button" className="secondary-button" onClick={exportProgress}>Export save</button>
-              <button type="button" className="secondary-button" onClick={() => { setNewGameOpen(false); setSettingsNotice(null); }}>Cancel</button>
+              <button ref={newGameCancelRef} type="button" className="secondary-button" onClick={closeNewGame}>Cancel</button>
               <button type="button" className="danger-button" onClick={resetProgress}>Reset progress</button>
             </div>
             {settingsNotice && <p className="settings-notice" role="status">{settingsNotice}</p>}
@@ -274,6 +329,7 @@ export function App() {
         </div>
       )}
 
+      <div className="app-background" aria-hidden={newGameOpen} inert={newGameOpen}>
       <section className="flight-panel" aria-labelledby="flight-heading">
         <div className="panel-heading">
           <div>
@@ -471,6 +527,7 @@ export function App() {
         </label>
         <span>Keyboard: focus Launch, then press Enter or Space.</span>
       </footer>
+      </div>
     </main>
   );
 }
