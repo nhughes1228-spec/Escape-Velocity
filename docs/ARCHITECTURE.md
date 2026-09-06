@@ -1,5 +1,7 @@
 # Architecture
 
+> Current playtest decision: two human sessions are recorded in [PHASE_2_PLAYTEST_REVISIONS.md](PHASE_2_PLAYTEST_REVISIONS.md). Final acceptance is held for its camera, scenery, upgrade-art and reset-discoverability improvements. These are the next implementation changes, not a claim that the live build already contains them. Ignition tuning remains a modeled candidate with deployed-save compatibility requirements.
+
 > Phase 2 integration deployed (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime keeps the approved `opening-v2` / `vertical-v1.1` formulas and mounts the controller-backed Phase 2 UI on `main`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
 
 Status: Phase 2 controller/UI integration deployed, 2026-09-05. The public Pages build implements the approved Phase 2 domain, settlement, persistence and focused UI; prefer small explicit modules over frameworks for hypothetical future systems.

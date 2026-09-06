@@ -13,6 +13,8 @@ test('launches, awards Credits, buys a physical upgrade, reloads, and replays wi
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Escape Velocity' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Launch', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New game', exact: true })).toBeVisible();
   await expect(page.getByText('No flights logged yet.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Launch', exact: true }).click();
@@ -48,9 +50,19 @@ test('launches, awards Credits, buys a physical upgrade, reloads, and replays wi
 
   const airframe = page.locator('.upgrade-card').filter({ hasText: 'Airframe' });
   await expect(airframe.getByRole('button', { name: /Buy Airframe for 12 Credits/ })).toBeEnabled();
+  const completedFlightBeforePurchase = await page.locator('canvas').evaluate((canvas) => (canvas as HTMLCanvasElement).toDataURL());
   await airframe.getByRole('button', { name: /Buy Airframe for 12 Credits/ }).click();
   await expect(page.getByLabel('7 Credits')).toBeVisible();
   await expect(airframe).toContainText('Lv. 1/8');
+  await expect(airframe).toContainText('The new configuration flies on your next launch.');
+  const completedFlightAfterPurchase = await page.locator('canvas').evaluate((canvas) => (canvas as HTMLCanvasElement).toDataURL());
+  expect(completedFlightAfterPurchase).toBe(completedFlightBeforePurchase);
+
+  await page.getByRole('button', { name: 'New game', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Start a new game?' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Credits, upgrades, personal best and flight log');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByLabel('7 Credits')).toBeVisible();
 
   await page.getByRole('button', { name: 'Launch again' }).click();
   await expect(page.locator('.status-chip').getByText('Ignition sequence', { exact: true })).toBeVisible();
@@ -126,6 +138,26 @@ test('keeps essential controls usable at a narrow viewport', async ({ page }) =>
   await expect(button).toBeEnabled();
   expect(await button.boundingBox()).not.toBeNull();
   await expect(page.getByText('Reduce motion')).toBeVisible();
+});
+
+test('confirms a visible new-game reset before clearing progress', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, '__EV_TEST_CLOCK__', { configurable: false, value: { nowMs: 0 } });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Launch', exact: true }).click();
+  await page.evaluate(() => window.dispatchEvent(new Event('escape-velocity:test-tick')));
+  await page.evaluate(() => {
+    window.__EV_TEST_CLOCK__!.nowMs += 12000;
+    window.dispatchEvent(new Event('escape-velocity:test-tick'));
+  });
+  await expect(page.locator('.status-message')).toContainText('Apogee reached');
+  await page.getByRole('button', { name: 'New game', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a new game?' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Reset progress', exact: true }).click();
+  await expect(page.getByLabel('0 Credits')).toBeVisible();
+  await expect(page.getByText('No flights logged yet.')).toBeVisible();
 });
 
 test('reloads an interrupted launch without a reward and exposes recovery settings', async ({ page }) => {

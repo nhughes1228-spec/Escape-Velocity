@@ -1,5 +1,7 @@
 # Phase 1 audit and Phase 2 implementation specification
 
+> Playtest follow-up (2026-09-05): [PHASE_2_PLAYTEST_REVISIONS.md](PHASE_2_PLAYTEST_REVISIONS.md) records two human sessions and authorizes the next presentation/usability pass. Its observed-flight world camera supersedes B1/F nominal-capability framing. The proposed Ignition retune is a separate modeled candidate; shipped `opening-v2` values remain unchanged until a versioned implementation. Other domain, reward, variance and save requirements below continue to apply.
+
 Review date: 2026-09-05. Reviewed code: `87cbc30` on `main`, after fetching `origin`; initial working tree clean. This specification authorizes a bounded implementation handoff, not a claim that Phase 2 exists. Application code and active balance configuration were not changed during this review. The design experiment imports the production solver.
 
 For Phase 2, this document supersedes the older opening-v1 **Ignition pricing/delay, replay and persistence proposals** where explicitly noted below. Physical upgrade formulas and income remain unchanged. Phase 3 milestone grants remain outside Phase 2. See the [candidate configuration](experiments/phase-2-candidate.json), [experiment](experiments/phase-2-probe.ts), and [measured report](experiments/phase-2-report.json). Luna must move approved candidate values into runtime configuration during implementation; UI must not import design experiments.

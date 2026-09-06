@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (public).
 
-**Current state:** Phase 2 controller/UI integration is merged to `main` and deployed through GitHub Pages. The Credits, upgrade, replay and Settings loop is live; Astra’s final human-playtest audit remains pending.
+**Current state:** Phase 2 controller/UI integration is merged to `main` and deployed through GitHub Pages. The presentation/usability correction is implemented as `07c205d` on the review branch and is awaiting merge and live verification; final Phase 2 acceptance remains held. See the [playtest handoff](docs/PHASE_2_PLAYTEST_REVISIONS.md).
 
 ## Project record
 
@@ -16,6 +16,7 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 - [Phase 1 audit and Phase 2 implementation specification](docs/PHASE_2_SPEC.md)
 - [Phase 2 implementation checkpoint](docs/PHASE_2_IMPLEMENTATION.md)
 - [Phase 2 focused P0 review](docs/PHASE_2_P0_REVIEW.md)
+- [Phase 2 playtest improvements](docs/PHASE_2_PLAYTEST_REVISIONS.md)
 - [Instructions for every agent](AGENTS.md)
 
 ## Play online

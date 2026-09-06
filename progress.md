@@ -40,3 +40,11 @@ Original prompt: Finish the Phase 1 GitHub Pages publishing workflow after the r
 - GitHub Actions Pages run `34002298235` completed successfully. Its build job passed typecheck, 55 unit tests, the production repository-subpath build and Pages browser checks before deploying the artifact.
 - Opened `https://nhughes1228-spec.github.io/Escape-Velocity/` in a real browser after deployment. The live page rendered, Launch entered the visible ignition countdown, and the first launch settled at 160 m for 19 Credits.
 - The Phase 2 opening is deployed and playable. Two extended human pacing sessions and Astra’s final release audit remain as release evidence; no balance or Phase 3 work is being started.
+
+## 2026-09-06 — Phase 2 presentation/usability correction
+
+- Implemented Astra’s focused playtest pass in `07c205d` on `codex/phase-2-playtest-revisions`; Phase 3 remains unopened and the approved `opening-v2` balance is unchanged.
+- Replaced predicted-capability camera framing with a fixed 300 m world scale that follows only the displayed ascent. Ruler, telemetry, trace, record line, rocket anchor, launchpad and cloud landmarks share the same altitude transform.
+- Added persistent launchpad/cloud scenery, distinct Engine bell, Fuel tank segmentation and Airframe fin/fairing artwork, and preserved historical result framing after purchases.
+- Made Settings and New game visible in the header, added a confirmed reset dialog with export/cancel/reset choices, scrolled header Settings into view, added local purchase confirmations, and clarified Personal best / Flight time labels.
+- Added camera/appearance regression coverage and expanded E2E coverage for purchase-preserved framing and visible reset discovery. Verification passed: 56 unit tests, typecheck, root build, balance report, 5 local browser tests and 2 Pages-subpath tests. Real local browser inspection confirmed ignition, camera translation, scenery and controls; live Pages still requires the post-merge deployment check.

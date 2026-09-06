@@ -1,0 +1,1326 @@
+{
+  "sourceCommit": "38590e3",
+  "sourceTool": "scripts/balance-report.ts",
+  "sourceToolSha256": "936bf6a9a930e0a03e36a0c52cdf28162f1fa3d94136cf3337a9c651d86740c8",
+  "scope": "Review-only Ignition override experiment. Production vehicle, variance, solver and price/reward helpers are used; shipped configuration and canonical balance-report.json are unchanged. Same six production policies and 32 campaign seeds per variant. Four seconds decision time per launch. physical_gain completes physical caps only, not all four systems. These are modeled results, not measured human session durations.",
+  "recommendedCandidate": "12",
+  "variants": {
+    "baseline": {
+      "candidate": "baseline",
+      "ignition": {
+        "cap": 4,
+        "baseCost": 8,
+        "delaysS": [
+          1.5,
+          1,
+          0.6,
+          0.3,
+          0.1
+        ]
+      },
+      "campaigns": {
+        "cheapest": {
+          "representativeSeed1": {
+            "launches": 56,
+            "minutes": 18.829298,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 289.233748,
+            "milestones": {
+              "500": {
+                "launches": 13,
+                "minutes": 3.383608
+              },
+              "1000": {
+                "launches": 27,
+                "minutes": 7.90075
+              }
+            },
+            "finalPurchaseMinutes": 18.829298
+          },
+          "semantics": "Buy the least expensive affordable level repeatedly.",
+          "completionMinutes": {
+            "min": 18.825666,
+            "median": 18.829685,
+            "max": 18.837993
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 286.87936,
+              "median": 290.781703,
+              "max": 293.632095
+            },
+            "launchesTo500m": {
+              "min": 13,
+              "median": 13,
+              "max": 13
+            },
+            "minutesTo500m": {
+              "min": 3.380228,
+              "median": 3.383296,
+              "max": 3.385675
+            },
+            "launchesTo1km": {
+              "min": 27,
+              "median": 27,
+              "max": 29
+            },
+            "minutesTo1km": {
+              "min": 7.897309,
+              "median": 7.901077,
+              "max": 8.609274
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 18.825666,
+              "median": 18.829685,
+              "max": 18.837993
+            }
+          }
+        },
+        "physical_gain": {
+          "representativeSeed1": {
+            "launches": 52,
+            "minutes": 19.246227,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 0
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 349.031759,
+            "milestones": {
+              "500": {
+                "launches": 8,
+                "minutes": 2.251413
+              },
+              "1000": {
+                "launches": 23,
+                "minutes": 7.458889
+              }
+            },
+            "finalPurchaseMinutes": 19.246227
+          },
+          "semantics": "Buy the best altitude gain per Credit, excluding Ignition.",
+          "completionMinutes": {
+            "min": 19.176437,
+            "median": 19.616272,
+            "max": 19.722761
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 346.17143,
+              "median": 350.911804,
+              "max": 354.372553
+            },
+            "launchesTo500m": {
+              "min": 8,
+              "median": 8,
+              "max": 8
+            },
+            "minutesTo500m": {
+              "min": 2.24933,
+              "median": 2.251413,
+              "max": 2.253102
+            },
+            "launchesTo1km": {
+              "min": 23,
+              "median": 23,
+              "max": 23
+            },
+            "minutesTo1km": {
+              "min": 7.45549,
+              "median": 7.493653,
+              "max": 7.498154
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 4,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.176437,
+              "median": 19.616272,
+              "max": 19.722761
+            }
+          }
+        },
+        "throughput": {
+          "representativeSeed1": {
+            "launches": 56,
+            "minutes": 18.57931,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 253.498687,
+            "milestones": {
+              "500": {
+                "launches": 13,
+                "minutes": 3.2601
+              },
+              "1000": {
+                "launches": 29,
+                "minutes": 8.399412
+              }
+            },
+            "finalPurchaseMinutes": 18.57931
+          },
+          "semantics": "Buy the best reward-per-review-second gain per Credit.",
+          "completionMinutes": {
+            "min": 18.575915,
+            "median": 18.581285,
+            "max": 18.975403
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 251.598201,
+              "median": 254.748394,
+              "max": 257.049974
+            },
+            "launchesTo500m": {
+              "min": 13,
+              "median": 13,
+              "max": 13
+            },
+            "minutesTo500m": {
+              "min": 3.195833,
+              "median": 3.259831,
+              "max": 3.26208
+            },
+            "launchesTo1km": {
+              "min": 29,
+              "median": 29,
+              "max": 30
+            },
+            "minutesTo1km": {
+              "min": 8.394174,
+              "median": 8.398684,
+              "max": 8.616738
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 18.575915,
+              "median": 18.581285,
+              "max": 18.975403
+            }
+          }
+        },
+        "ignition_first": {
+          "representativeSeed1": {
+            "launches": 57,
+            "minutes": 18.895314,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 159.134458,
+            "milestones": {
+              "500": {
+                "launches": 14,
+                "minutes": 3.449403
+              },
+              "1000": {
+                "launches": 29,
+                "minutes": 8.316551
+              }
+            },
+            "finalPurchaseMinutes": 18.895314
+          },
+          "semantics": "Wait for and buy Ignition levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 18.891928,
+            "median": 18.895351,
+            "max": 18.903548
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 157.558043,
+              "median": 160.171869,
+              "max": 162.084119
+            },
+            "launchesTo500m": {
+              "min": 14,
+              "median": 14,
+              "max": 14
+            },
+            "minutesTo500m": {
+              "min": 3.445942,
+              "median": 3.449112,
+              "max": 3.451405
+            },
+            "launchesTo1km": {
+              "min": 28,
+              "median": 28,
+              "max": 30
+            },
+            "minutesTo1km": {
+              "min": 7.960721,
+              "median": 7.969894,
+              "max": 8.672492
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 18.891928,
+              "median": 18.895351,
+              "max": 18.903548
+            }
+          }
+        },
+        "engine_first": {
+          "representativeSeed1": {
+            "launches": 66,
+            "minutes": 19.45848,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 6,
+            "fifthLaunchAltitudeM": 241.030802,
+            "milestones": {
+              "500": {
+                "launches": 34,
+                "minutes": 8.28599
+              },
+              "1000": {
+                "launches": 45,
+                "minutes": 11.630107
+              }
+            },
+            "finalPurchaseMinutes": 19.45848
+          },
+          "semantics": "Wait for and buy Engine levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 19.385483,
+            "median": 19.391078,
+            "max": 19.463599
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 239.261734,
+              "median": 242.194101,
+              "max": 244.336566
+            },
+            "launchesTo500m": {
+              "min": 34,
+              "median": 34,
+              "max": 34
+            },
+            "minutesTo500m": {
+              "min": 8.257034,
+              "median": 8.261488,
+              "max": 8.288385
+            },
+            "launchesTo1km": {
+              "min": 45,
+              "median": 45,
+              "max": 45
+            },
+            "minutesTo1km": {
+              "min": 11.581266,
+              "median": 11.587984,
+              "max": 11.633653
+            },
+            "maxNoPurchaseGap": {
+              "min": 6,
+              "median": 7,
+              "max": 7
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.385483,
+              "median": 19.391078,
+              "max": 19.463599
+            }
+          }
+        },
+        "random": {
+          "representativeSeed1": {
+            "launches": 56,
+            "minutes": 18.682254,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 287.584109,
+            "milestones": {
+              "500": {
+                "launches": 11,
+                "minutes": 2.903411
+              },
+              "1000": {
+                "launches": 29,
+                "minutes": 8.635792
+              }
+            },
+            "finalPurchaseMinutes": 18.682254
+          },
+          "semantics": "Choose uniformly from affordable upgrades with an independent deterministic choice stream.",
+          "completionMinutes": {
+            "min": 18.650327,
+            "median": 18.900956,
+            "max": 19.201798
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 225.425449,
+              "median": 287.132416,
+              "max": 349.788588
+            },
+            "launchesTo500m": {
+              "min": 9,
+              "median": 13,
+              "max": 13
+            },
+            "minutesTo500m": {
+              "min": 2.422381,
+              "median": 3.310301,
+              "max": 3.564005
+            },
+            "launchesTo1km": {
+              "min": 26,
+              "median": 28,
+              "max": 32
+            },
+            "minutesTo1km": {
+              "min": 7.616862,
+              "median": 8.149989,
+              "max": 9.581753
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 18.650327,
+              "median": 18.900956,
+              "max": 19.201798
+            }
+          }
+        }
+      },
+      "audit": {
+        "builds": 729,
+        "worstAltitudeDifferenceM": 5.874285545814928e-05,
+        "worstTimeDifferenceS": 1.4418426097506654e-06,
+        "minimumPadTWR": 1.1017368648913703,
+        "minimumVarianceDeltaPct": -2.8668239121838135,
+        "maximumVarianceDeltaPct": 2.870799906164323,
+        "negativeUpgradeEdges": 0
+      }
+    },
+    "12": {
+      "candidate": "12",
+      "ignition": {
+        "cap": 4,
+        "baseCost": 12,
+        "delaysS": [
+          3,
+          2,
+          1.2,
+          0.6,
+          0.1
+        ]
+      },
+      "campaigns": {
+        "cheapest": {
+          "representativeSeed1": {
+            "launches": 57,
+            "minutes": 19.532427,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 4,
+            "fifthLaunchAltitudeM": 330.117083,
+            "milestones": {
+              "500": {
+                "launches": 12,
+                "minutes": 3.377454
+              },
+              "1000": {
+                "launches": 27,
+                "minutes": 8.237865
+              }
+            },
+            "finalPurchaseMinutes": 19.532427
+          },
+          "semantics": "Buy the least expensive affordable level repeatedly.",
+          "completionMinutes": {
+            "min": 19.452314,
+            "median": 19.519177,
+            "max": 19.537814
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 327.552938,
+              "median": 331.802651,
+              "max": 334.90583
+            },
+            "launchesTo500m": {
+              "min": 12,
+              "median": 12,
+              "max": 12
+            },
+            "minutesTo500m": {
+              "min": 3.374475,
+              "median": 3.377095,
+              "max": 3.379068
+            },
+            "launchesTo1km": {
+              "min": 27,
+              "median": 27,
+              "max": 30
+            },
+            "minutesTo1km": {
+              "min": 8.190294,
+              "median": 8.238227,
+              "max": 9.294292
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 4,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.452314,
+              "median": 19.519177,
+              "max": 19.537814
+            }
+          }
+        },
+        "physical_gain": {
+          "representativeSeed1": {
+            "launches": 52,
+            "minutes": 20.546227,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 0
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 349.031759,
+            "milestones": {
+              "500": {
+                "launches": 8,
+                "minutes": 2.451413
+              },
+              "1000": {
+                "launches": 23,
+                "minutes": 8.033889
+              }
+            },
+            "finalPurchaseMinutes": 20.546227
+          },
+          "semantics": "Buy the best altitude gain per Credit, excluding Ignition.",
+          "completionMinutes": {
+            "min": 20.476437,
+            "median": 20.941272,
+            "max": 21.047761
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 346.17143,
+              "median": 350.911804,
+              "max": 354.372553
+            },
+            "launchesTo500m": {
+              "min": 8,
+              "median": 8,
+              "max": 8
+            },
+            "minutesTo500m": {
+              "min": 2.44933,
+              "median": 2.451413,
+              "max": 2.453102
+            },
+            "launchesTo1km": {
+              "min": 23,
+              "median": 23,
+              "max": 23
+            },
+            "minutesTo1km": {
+              "min": 8.03049,
+              "median": 8.068653,
+              "max": 8.073154
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 4,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 20.476437,
+              "median": 20.941272,
+              "max": 21.047761
+            }
+          }
+        },
+        "throughput": {
+          "representativeSeed1": {
+            "launches": 57,
+            "minutes": 19.139945,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 259.103316,
+            "milestones": {
+              "500": {
+                "launches": 12,
+                "minutes": 3.246018
+              },
+              "1000": {
+                "launches": 30,
+                "minutes": 8.960351
+              }
+            },
+            "finalPurchaseMinutes": 19.139945
+          },
+          "semantics": "Buy the best reward-per-review-second gain per Credit.",
+          "completionMinutes": {
+            "min": 19.137589,
+            "median": 19.150956,
+            "max": 19.586798
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 257.082833,
+              "median": 260.738732,
+              "max": 292.220033
+            },
+            "launchesTo500m": {
+              "min": 12,
+              "median": 12,
+              "max": 12
+            },
+            "minutesTo500m": {
+              "min": 3.243738,
+              "median": 3.24608,
+              "max": 3.25599
+            },
+            "launchesTo1km": {
+              "min": 30,
+              "median": 30,
+              "max": 30
+            },
+            "minutesTo1km": {
+              "min": 8.95459,
+              "median": 8.959224,
+              "max": 8.969448
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.137589,
+              "median": 19.150956,
+              "max": 19.586798
+            }
+          }
+        },
+        "ignition_first": {
+          "representativeSeed1": {
+            "launches": 59,
+            "minutes": 19.403692,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 159.134458,
+            "milestones": {
+              "500": {
+                "launches": 16,
+                "minutes": 3.957779
+              },
+              "1000": {
+                "launches": 30,
+                "minutes": 8.475124
+              }
+            },
+            "finalPurchaseMinutes": 19.403692
+          },
+          "semantics": "Wait for and buy Ignition levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 19.397401,
+            "median": 19.403869,
+            "max": 19.411196
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 157.558043,
+              "median": 160.171869,
+              "max": 162.084119
+            },
+            "launchesTo500m": {
+              "min": 16,
+              "median": 16,
+              "max": 16
+            },
+            "minutesTo500m": {
+              "min": 3.950139,
+              "median": 3.957438,
+              "max": 3.960201
+            },
+            "launchesTo1km": {
+              "min": 30,
+              "median": 30,
+              "max": 32
+            },
+            "minutesTo1km": {
+              "min": 8.469463,
+              "median": 8.475378,
+              "max": 9.177885
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.397401,
+              "median": 19.403869,
+              "max": 19.411196
+            }
+          }
+        },
+        "engine_first": {
+          "representativeSeed1": {
+            "launches": 67,
+            "minutes": 20.675626,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 6,
+            "fifthLaunchAltitudeM": 241.030802,
+            "milestones": {
+              "500": {
+                "launches": 34,
+                "minutes": 9.124323
+              },
+              "1000": {
+                "launches": 46,
+                "minutes": 12.857896
+              }
+            },
+            "finalPurchaseMinutes": 20.675626
+          },
+          "semantics": "Wait for and buy Engine levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 20.654125,
+            "median": 20.674656,
+            "max": 20.684909
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 239.261734,
+              "median": 242.194101,
+              "max": 244.336566
+            },
+            "launchesTo500m": {
+              "min": 34,
+              "median": 34,
+              "max": 34
+            },
+            "minutesTo500m": {
+              "min": 9.118379,
+              "median": 9.123288,
+              "max": 9.139168
+            },
+            "launchesTo1km": {
+              "min": 46,
+              "median": 46,
+              "max": 46
+            },
+            "minutesTo1km": {
+              "min": 12.853455,
+              "median": 12.857896,
+              "max": 12.87373
+            },
+            "maxNoPurchaseGap": {
+              "min": 6,
+              "median": 7,
+              "max": 7
+            },
+            "finalPurchaseMinutes": {
+              "min": 20.654125,
+              "median": 20.674656,
+              "max": 20.684909
+            }
+          }
+        },
+        "random": {
+          "representativeSeed1": {
+            "launches": 57,
+            "minutes": 19.517405,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 259.103316,
+            "milestones": {
+              "500": {
+                "launches": 10,
+                "minutes": 2.743815
+              },
+              "1000": {
+                "launches": 30,
+                "minutes": 9.37595
+              }
+            },
+            "finalPurchaseMinutes": 19.517405
+          },
+          "semantics": "Choose uniformly from affordable upgrades with an independent deterministic choice stream.",
+          "completionMinutes": {
+            "min": 19.249493,
+            "median": 19.502402,
+            "max": 19.775042
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 258.540543,
+              "median": 293.632095,
+              "max": 351.345753
+            },
+            "launchesTo500m": {
+              "min": 10,
+              "median": 12,
+              "max": 14
+            },
+            "minutesTo500m": {
+              "min": 2.743815,
+              "median": 3.316588,
+              "max": 4.043781
+            },
+            "launchesTo1km": {
+              "min": 27,
+              "median": 28,
+              "max": 33
+            },
+            "minutesTo1km": {
+              "min": 8.21846,
+              "median": 8.660508,
+              "max": 10.113932
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.249493,
+              "median": 19.502402,
+              "max": 19.775042
+            }
+          }
+        }
+      },
+      "audit": {
+        "builds": 729,
+        "worstAltitudeDifferenceM": 5.874285545814928e-05,
+        "worstTimeDifferenceS": 1.4418426097506654e-06,
+        "minimumPadTWR": 1.1017368648913703,
+        "minimumVarianceDeltaPct": -2.8668239121838135,
+        "maximumVarianceDeltaPct": 2.870799906164323,
+        "negativeUpgradeEdges": 0
+      }
+    },
+    "14": {
+      "candidate": "14",
+      "ignition": {
+        "cap": 4,
+        "baseCost": 14,
+        "delaysS": [
+          3,
+          2,
+          1.2,
+          0.6,
+          0.1
+        ]
+      },
+      "campaigns": {
+        "cheapest": {
+          "representativeSeed1": {
+            "launches": 57,
+            "minutes": 19.511731,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 330.117083,
+            "milestones": {
+              "500": {
+                "launches": 11,
+                "minutes": 3.12564
+              },
+              "1000": {
+                "launches": 29,
+                "minutes": 8.932892
+              }
+            },
+            "finalPurchaseMinutes": 19.511731
+          },
+          "semantics": "Buy the least expensive affordable level repeatedly.",
+          "completionMinutes": {
+            "min": 19.501068,
+            "median": 19.511587,
+            "max": 19.51988
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 327.552938,
+              "median": 331.802651,
+              "max": 334.90583
+            },
+            "launchesTo500m": {
+              "min": 11,
+              "median": 11,
+              "max": 11
+            },
+            "minutesTo500m": {
+              "min": 3.116356,
+              "median": 3.125213,
+              "max": 3.12722
+            },
+            "launchesTo1km": {
+              "min": 28,
+              "median": 28,
+              "max": 30
+            },
+            "minutesTo1km": {
+              "min": 8.569861,
+              "median": 8.586225,
+              "max": 9.288858
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.501068,
+              "median": 19.511587,
+              "max": 19.51988
+            }
+          }
+        },
+        "physical_gain": {
+          "representativeSeed1": {
+            "launches": 52,
+            "minutes": 20.546227,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 0
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 349.031759,
+            "milestones": {
+              "500": {
+                "launches": 8,
+                "minutes": 2.451413
+              },
+              "1000": {
+                "launches": 23,
+                "minutes": 8.033889
+              }
+            },
+            "finalPurchaseMinutes": 20.546227
+          },
+          "semantics": "Buy the best altitude gain per Credit, excluding Ignition.",
+          "completionMinutes": {
+            "min": 20.476437,
+            "median": 20.941272,
+            "max": 21.047761
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 346.17143,
+              "median": 350.911804,
+              "max": 354.372553
+            },
+            "launchesTo500m": {
+              "min": 8,
+              "median": 8,
+              "max": 8
+            },
+            "minutesTo500m": {
+              "min": 2.44933,
+              "median": 2.451413,
+              "max": 2.453102
+            },
+            "launchesTo1km": {
+              "min": 23,
+              "median": 23,
+              "max": 23
+            },
+            "minutesTo1km": {
+              "min": 8.03049,
+              "median": 8.068653,
+              "max": 8.073154
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 4,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 20.476437,
+              "median": 20.941272,
+              "max": 21.047761
+            }
+          }
+        },
+        "throughput": {
+          "representativeSeed1": {
+            "launches": 58,
+            "minutes": 19.304435,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 289.233748,
+            "milestones": {
+              "500": {
+                "launches": 12,
+                "minutes": 3.285429
+              },
+              "1000": {
+                "launches": 31,
+                "minutes": 9.219723
+              }
+            },
+            "finalPurchaseMinutes": 19.304435
+          },
+          "semantics": "Buy the best reward-per-review-second gain per Credit.",
+          "completionMinutes": {
+            "min": 19.304435,
+            "median": 19.397362,
+            "max": 19.407676
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 286.87936,
+              "median": 290.781703,
+              "max": 293.632095
+            },
+            "launchesTo500m": {
+              "min": 12,
+              "median": 12,
+              "max": 13
+            },
+            "minutesTo500m": {
+              "min": 3.283218,
+              "median": 3.28552,
+              "max": 3.563608
+            },
+            "launchesTo1km": {
+              "min": 31,
+              "median": 31,
+              "max": 31
+            },
+            "minutesTo1km": {
+              "min": 9.171332,
+              "median": 9.218147,
+              "max": 9.222876
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.304435,
+              "median": 19.397362,
+              "max": 19.407676
+            }
+          }
+        },
+        "ignition_first": {
+          "representativeSeed1": {
+            "launches": 60,
+            "minutes": 19.649871,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 3,
+            "fifthLaunchAltitudeM": 159.134458,
+            "milestones": {
+              "500": {
+                "launches": 17,
+                "minutes": 4.203372
+              },
+              "1000": {
+                "launches": 32,
+                "minutes": 9.071005
+              }
+            },
+            "finalPurchaseMinutes": 19.649871
+          },
+          "semantics": "Wait for and buy Ignition levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 19.645773,
+            "median": 19.649871,
+            "max": 19.656923
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 157.558043,
+              "median": 160.171869,
+              "max": 162.084119
+            },
+            "launchesTo500m": {
+              "min": 17,
+              "median": 17,
+              "max": 17
+            },
+            "minutesTo500m": {
+              "min": 4.199763,
+              "median": 4.202926,
+              "max": 4.206168
+            },
+            "launchesTo1km": {
+              "min": 31,
+              "median": 31,
+              "max": 32
+            },
+            "minutesTo1km": {
+              "min": 8.715547,
+              "median": 8.720129,
+              "max": 9.071005
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 3,
+              "max": 3
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.645773,
+              "median": 19.649871,
+              "max": 19.656923
+            }
+          }
+        },
+        "engine_first": {
+          "representativeSeed1": {
+            "launches": 68,
+            "minutes": 21.059013,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 6,
+            "fifthLaunchAltitudeM": 241.030802,
+            "milestones": {
+              "500": {
+                "launches": 34,
+                "minutes": 9.14099
+              },
+              "1000": {
+                "launches": 46,
+                "minutes": 12.874562
+              }
+            },
+            "finalPurchaseMinutes": 21.059013
+          },
+          "semantics": "Wait for and buy Engine levels first, then buy the least expensive affordable level.",
+          "completionMinutes": {
+            "min": 21.053589,
+            "median": 21.0592,
+            "max": 21.070535
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 239.261734,
+              "median": 242.194101,
+              "max": 244.336566
+            },
+            "launchesTo500m": {
+              "min": 34,
+              "median": 34,
+              "max": 34
+            },
+            "minutesTo500m": {
+              "min": 9.134483,
+              "median": 9.138624,
+              "max": 9.143385
+            },
+            "launchesTo1km": {
+              "min": 46,
+              "median": 46,
+              "max": 46
+            },
+            "minutesTo1km": {
+              "min": 12.870747,
+              "median": 12.878455,
+              "max": 12.885481
+            },
+            "maxNoPurchaseGap": {
+              "min": 6,
+              "median": 7,
+              "max": 7
+            },
+            "finalPurchaseMinutes": {
+              "min": 21.053589,
+              "median": 21.0592,
+              "max": 21.070535
+            }
+          }
+        },
+        "random": {
+          "representativeSeed1": {
+            "launches": 58,
+            "minutes": 19.720275,
+            "levels": {
+              "engine": 8,
+              "fuel": 8,
+              "airframe": 8,
+              "ignition": 4
+            },
+            "altitudeM": 1647.878595,
+            "maxNoPurchaseStreak": 4,
+            "fifthLaunchAltitudeM": 218.718816,
+            "milestones": {
+              "500": {
+                "launches": 12,
+                "minutes": 3.140774
+              },
+              "1000": {
+                "launches": 29,
+                "minutes": 8.711987
+              }
+            },
+            "finalPurchaseMinutes": 19.720275
+          },
+          "semantics": "Choose uniformly from affordable upgrades with an independent deterministic choice stream.",
+          "completionMinutes": {
+            "min": 19.481245,
+            "median": 19.762543,
+            "max": 20.016761
+          },
+          "pacing": {
+            "fifthLaunchAltitudeM": {
+              "min": 218.718816,
+              "median": 327.41643,
+              "max": 351.345753
+            },
+            "launchesTo500m": {
+              "min": 10,
+              "median": 11,
+              "max": 13
+            },
+            "minutesTo500m": {
+              "min": 2.763593,
+              "median": 3.19102,
+              "max": 3.515826
+            },
+            "launchesTo1km": {
+              "min": 27,
+              "median": 30,
+              "max": 31
+            },
+            "minutesTo1km": {
+              "min": 8.471983,
+              "median": 9.319173,
+              "max": 9.839241
+            },
+            "maxNoPurchaseGap": {
+              "min": 3,
+              "median": 4,
+              "max": 4
+            },
+            "finalPurchaseMinutes": {
+              "min": 19.481245,
+              "median": 19.762543,
+              "max": 20.016761
+            }
+          }
+        }
+      },
+      "audit": {
+        "builds": 729,
+        "worstAltitudeDifferenceM": 5.874285545814928e-05,
+        "worstTimeDifferenceS": 1.4418426097506654e-06,
+        "minimumPadTWR": 1.1017368648913703,
+        "minimumVarianceDeltaPct": -2.8668239121838135,
+        "maximumVarianceDeltaPct": 2.870799906164323,
+        "negativeUpgradeEdges": 0
+      }
+    }
+  }
+}
