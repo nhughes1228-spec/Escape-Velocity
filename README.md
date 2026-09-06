@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (public).
 
-**Current state:** Phase 2 controller/UI integration and the presentation/usability correction are merged to `main` at `6ff4756` and deployed through GitHub Pages. Final Phase 2 acceptance remains held for Astra’s review; Phase 3 has not begun. See the [playtest handoff](docs/PHASE_2_PLAYTEST_REVISIONS.md).
+**Current state:** Phase 2 controller/UI integration and the presentation/usability correction are merged to `main` at `2122dde` and deployed through GitHub Pages. The New game dialog now has keyboard modal behavior; final Phase 2 acceptance remains held for the short revised-presentation check and Astra’s review. Phase 3 has not begun. See the [playtest handoff](docs/PHASE_2_PLAYTEST_REVISIONS.md).
 
 ## Project record
 
@@ -23,7 +23,7 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 
 [Play Escape Velocity](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-This is the public Phase 2 build. The deployment workflow publishes `main` at this repository-subpath URL using **GitHub Actions**. The presentation correction was verified after merge commit `6ff4756` by opening the page, observing the visible header controls and ignition sequence, and settling a 162 m flight for 19 Credits with no browser console errors.
+This is the public Phase 2 build. The deployment workflow publishes `main` at this repository-subpath URL using **GitHub Actions**. The dialog correction was verified after merge commit `2122dde` and Pages run `34042526093` by opening New game, confirming Cancel focus, Tab/Shift+Tab containment, Escape cancellation and focus restoration, with no browser console errors.
 
 ## Development
 
