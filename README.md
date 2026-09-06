@@ -4,7 +4,7 @@ An incremental rocket-building game: launch, measure, improve, repeat. Start wit
 
 Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhughes1228-spec/Escape-Velocity) (public).
 
-**Current state:** Phase 2 controller/UI integration candidate. The public `main` deployment remains the accepted Phase 1 first-playable build until this branch's verification and Pages publication are complete.
+**Current state:** Phase 2 controller/UI integration is merged to `main` and deployed through GitHub Pages. The Credits, upgrade, replay and Settings loop is live; Astra’s final human-playtest audit remains pending.
 
 ## Project record
 
@@ -20,9 +20,9 @@ Canonical repository: [nhughes1228-spec/Escape-Velocity](https://github.com/nhug
 
 ## Play online
 
-[Open the live Phase 1 game](https://nhughes1228-spec.github.io/Escape-Velocity/)
+[Play Escape Velocity](https://nhughes1228-spec.github.io/Escape-Velocity/)
 
-This URL is the accepted live Phase 1 build while Phase 2 integration is being verified. The public repository's deployment workflow publishes `main` at this repository-subpath URL using **GitHub Actions**. After the Phase 2 pull request is merged, the same link will serve the verified Phase 2 build.
+This is the public Phase 2 build. The deployment workflow publishes `main` at this repository-subpath URL using **GitHub Actions**. The live deployment was verified after merge commit `5a69810` by opening the page, starting a launch, observing ignition feedback, and settling a 160 m flight for 19 Credits.
 
 ## Development
 

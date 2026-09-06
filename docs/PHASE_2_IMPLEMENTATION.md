@@ -1,6 +1,6 @@
 # Phase 2 implementation handoff
 
-Status: controller/UI integration candidate, 2026-09-05. Correction commit `059aee9` passed the focused Astra P0 gate. This branch implements the approved controller, Credits loop, four upgrade cards, historical replay and Settings recovery behavior, but it is not release-approved until the full verification, human playtest and live Pages checks complete. [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
+Status: controller/UI integration deployed to `main`, 2026-09-05. Correction commit `059aee9` passed the focused Astra P0 gate. Merge commit `5a69810` publishes the approved controller, Credits loop, four upgrade cards, historical replay and Settings recovery behavior through GitHub Pages. Automated verification and a live browser smoke pass; Astra’s two human pacing sessions and final release audit remain pending. [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design specification.
 
 **Astra review of `1c9156c`: CONDITIONAL PASS.** Independent standard checks pass, but adversarial/controller probes revealed four blockers before UI integration: protected-save writes, trace-loop work that escapes sample budgets, playback identity reuse after reset/import/recovery, and publication of invalid transitions through mutable snapshots. [The checkpoint review](PHASE_2_CHECKPOINT_REVIEW.md) records the evidence. Correction commit `059aee9` subsequently passed the [focused P0 review](PHASE_2_P0_REVIEW.md). All four original reproductions are fixed; remaining P1 work includes unsaved gameplay under read failure, stable subscription snapshots, one-time interrupted reconciliation and explicit Settings outcomes. No balance tuning or normal-flight physics change was made.
 
@@ -29,7 +29,7 @@ The secondary `Replay last flight — no reward` action reconstructs the latest 
 
 The UI deliberately does not expose estimated apogee, seeds, advanced aerospace telemetry, milestones, staging, orbit, payloads or any other later-phase systems.
 
-## Verification for the integration candidate
+## Verification and deployment
 
 The checkpoint must pass:
 
@@ -44,6 +44,8 @@ npm run test:e2e:pages
 
 The unit suite covers reward/cost/caps, physical derivation, seeded variance and published vectors, replay/new-launch settlement, bounded physics, altitude mapping, save round trips, corrupted/future/oversized data, backup recovery, interrupted reservations, storage failure, imports, stale-tab conflicts, stable snapshots, counter relations and pre-seed overflow guards. Browser tests cover paid launch → reward → physical purchase → improved launch → reload → unpaid replay, interrupted reload, Settings access, root development and repository-subpath production builds.
 
+The merged `main` commit is `5a69810` (PR [#6](https://github.com/nhughes1228-spec/Escape-Velocity/pull/6)). GitHub Actions Pages run [34002298235](https://github.com/nhughes1228-spec/Escape-Velocity/actions/runs/34002298235) completed successfully, including typecheck, unit tests, the repository-subpath browser suite and artifact deployment. The live URL is [https://nhughes1228-spec.github.io/Escape-Velocity/](https://nhughes1228-spec.github.io/Escape-Velocity/). A real browser opened that URL and verified the initial screen, ignition countdown/progress, and a completed 160 m launch awarding 19 Credits.
+
 ## Deliberate exclusions
 
-No staging, orbit, payloads, missions, prestige, research tree, secondary currency, failures, engine families, auto-launch, offline income, fast-forward or variance-reduction technology is included. Until release verification completes, the public Pages URL continues to represent the accepted Phase 1 `main` deployment; this branch is the Phase 2 integration candidate.
+No staging, orbit, payloads, missions, prestige, research tree, secondary currency, failures, engine families, auto-launch, offline income, fast-forward or variance-reduction technology is included. Phase 3 has not begun. The live build remains a bounded Phase 2 opening sandbox pending human pacing review.

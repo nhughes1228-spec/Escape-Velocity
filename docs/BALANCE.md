@@ -1,8 +1,8 @@
 # Balance framework — opening-v2
 
-> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime configuration is `opening-v2` with `vertical-v1.1`; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the integrated controller/UI candidate. The accepted public `main` deployment remains Phase 1 pending release verification. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
+> Phase 2 integration deployed (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime configuration is `opening-v2` with `vertical-v1.1`; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the integrated controller/UI deployment. Final human pacing review is pending. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
 
-Status: measured Phase 2 checkpoint configuration, not human-playtested through the UI. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
+Status: measured Phase 2 deployed configuration; automated/live-browser checks pass, with human pacing sessions pending. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
 
 ## Starter rocket
 

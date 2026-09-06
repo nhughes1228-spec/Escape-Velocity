@@ -33,3 +33,10 @@ Original prompt: Finish the Phase 1 GitHub Pages publishing workflow after the r
 - Replaced the Phase 1 reducer-owned screen with the controller-backed Phase 2 surface: Credits and record, paid seeded launches, four shared-selector upgrade cards, visibly distinct physical silhouette levels, historical unpaid replay, motion settings, save export/import/recovery/reset and interrupted reload handling.
 - Expanded the permanent balance report to six explicitly named strategies, fifth-launch/500 m/1 km/final-purchase pacing and nominal plus variance-endpoint timestep convergence. The approved physics/economy configuration remains unchanged.
 - Added browser coverage for paid launch → reward → purchase → improved launch → reload → unpaid replay, interrupted reload and Settings; local root and Pages-subpath browser suites pass after sequential execution.
+
+## Phase 2 deployment verification
+
+- Merged PR #6 into `main` as `5a69810`; no Phase 3 systems were added.
+- GitHub Actions Pages run `34002298235` completed successfully. Its build job passed typecheck, 55 unit tests, the production repository-subpath build and Pages browser checks before deploying the artifact.
+- Opened `https://nhughes1228-spec.github.io/Escape-Velocity/` in a real browser after deployment. The live page rendered, Launch entered the visible ignition countdown, and the first launch settled at 160 m for 19 Credits.
+- The Phase 2 opening is deployed and playable. Two extended human pacing sessions and Astra’s final release audit remain as release evidence; no balance or Phase 3 work is being started.

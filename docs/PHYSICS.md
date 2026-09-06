@@ -1,6 +1,6 @@
 # Physics specification — vertical-v1.1
 
-> Phase 2 checkpoint (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime is `vertical-v1.1` on the Phase 2 domain/save checkpoint branch; the accepted public `main` deployment remains the Phase 1 surface until Astra review and UI integration. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged nominal formulas/fixtures remain valid.
+> Phase 2 integration deployed (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime is `vertical-v1.1` on the deployed Phase 2 `main`; the handoff explicitly supersedes earlier Ignition, replay and save proposals, while unchanged nominal formulas/fixtures remain valid.
 
 Status: normative for the first playable simulation and Phase 2 seeded recipes. SI units throughout: kg, m, s, N, m/s, kg/s, kg/m³. This is an Earth-like toy model for interacting upgrades, not a flight planning tool. [BALANCE](BALANCE.md) owns parameters; this document owns equations and event semantics.
 
