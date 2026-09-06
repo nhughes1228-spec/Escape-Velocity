@@ -59,9 +59,26 @@ test('launches, awards Credits, buys a physical upgrade, reloads, and replays wi
   expect(completedFlightAfterPurchase).toBe(completedFlightBeforePurchase);
 
   await page.getByRole('button', { name: 'New game', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Start a new game?' })).toBeVisible();
-  await expect(page.getByRole('dialog')).toContainText('Credits, upgrades, personal best and flight log');
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  const newGameDialog = page.getByRole('dialog', { name: 'Start a new game?' });
+  await expect(newGameDialog).toBeVisible();
+  await expect(newGameDialog).toContainText('Credits, upgrades, personal best and flight log');
+  await expect(page.locator('.app-background')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('.app-background')).toHaveAttribute('inert', '');
+  await expect(newGameDialog.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+
+  const backgroundLaunch = page.locator('.app-background .launch-button');
+  await backgroundLaunch.focus();
+  expect(await backgroundLaunch.evaluate((element) => document.activeElement === element)).toBe(false);
+
+  const exportSave = newGameDialog.getByRole('button', { name: 'Export save', exact: true });
+  await exportSave.focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(newGameDialog.getByRole('button', { name: 'Reset progress', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(exportSave).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(newGameDialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'New game', exact: true })).toBeFocused();
   await expect(page.getByLabel('7 Credits')).toBeVisible();
 
   await page.getByRole('button', { name: 'Launch again' }).click();
