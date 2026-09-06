@@ -9,6 +9,10 @@ test('loads the production build from the GitHub Pages repository subpath', asyn
     if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
   });
 
+  await page.addInitScript(() => {
+    Object.defineProperty(window, '__EV_TEST_CLOCK__', { configurable: false, value: { nowMs: 0 } });
+  });
+
   const response = await page.goto('./');
   expect(response?.status()).toBe(200);
   await expect(page.getByRole('heading', { name: 'Escape Velocity' })).toBeVisible();
@@ -19,6 +23,14 @@ test('loads the production build from the GitHub Pages repository subpath', asyn
   expect(assetUrls.every((url) => url!.startsWith('/Escape-Velocity/'))).toBe(true);
   expect(failedResponses).toEqual([]);
   expect(errors).toEqual([]);
+
+  await page.getByRole('button', { name: 'Launch', exact: true }).click();
+  await page.evaluate(() => window.dispatchEvent(new Event('escape-velocity:test-tick')));
+  await page.evaluate(() => {
+    window.__EV_TEST_CLOCK__!.nowMs += 12000;
+    window.dispatchEvent(new Event('escape-velocity:test-tick'));
+  });
+  await expect(page.getByText(/\+19 Credits/)).toBeVisible();
 });
 
 test('shows a recovery screen when the application bundle cannot load', async ({ page }) => {

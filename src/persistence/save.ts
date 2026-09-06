@@ -207,6 +207,12 @@ export function validateSave(value: unknown): SaveV1 {
   if (progress.launchesCompleted > progress.launchesStarted) throw new Error('progress.launchesCompleted exceeds launchesStarted.');
   if (progress.lastSettledRunId !== null && progress.lastSettledRunId > progress.launchesStarted) throw new Error('progress.lastSettledRunId is invalid.');
   if ((progress.launchesCompleted === 0) !== (progress.lastSettledRunId === null)) throw new Error('Completed launches and lastSettledRunId are inconsistent.');
+  if (progress.lastSettledRunId !== null && progress.launchesCompleted > progress.lastSettledRunId) {
+    throw new Error('progress.launchesCompleted exceeds the latest settled run ID.');
+  }
+  if (progress.launchesCompleted === 0 && progress.bestAltitudeM > 0) {
+    throw new Error('A save with no completed launches cannot have a best altitude.');
+  }
 
   const settingsRoot = record(root.settings, 'save.settings');
   const motion = settingsRoot.motion;
@@ -220,6 +226,9 @@ export function validateSave(value: unknown): SaveV1 {
   if (lastLaunch?.status === 'interrupted' && progress.lastSettledRunId === lastLaunch.runId) throw new Error('Interrupted lastLaunch cannot be the lastSettledRunId.');
   if (lastLaunch && lastLaunch.status !== 'settled' && progress.lastSettledRunId !== null && progress.lastSettledRunId >= lastLaunch.runId) {
     throw new Error('Interrupted/started lastLaunch must follow the last settled launch.');
+  }
+  if (lastLaunch && lastLaunch.status !== 'settled' && progress.launchesCompleted >= progress.launchesStarted) {
+    throw new Error('An unsettled latest launch must leave the completed count below the started count.');
   }
   if (lastLaunch?.status === 'settled' && lastLaunch.summary) {
     if (lastLaunch.summary.isNewRecord) {

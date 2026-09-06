@@ -158,7 +158,7 @@ describe('phase 2 save contract', () => {
     store.dispose();
   });
 
-  it('does not write after a primary read failure', () => {
+  it('keeps an in-memory session playable after a primary read failure', () => {
     const base = new MemoryStorage();
     const source = createGameStore({ storage: base, seedSource: () => 0 });
     settleNewLaunch(source);
@@ -167,13 +167,79 @@ describe('phase 2 save contract', () => {
     const guarded = new SelectiveReadStorage(base, new Set([SAVE_KEY]));
     const store = createGameStore({ storage: guarded, seedSource: () => 1 });
 
-    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(false);
+    expect(store.dispatch({ type: 'setMotion', motion: 'reduced' })).toBe(true);
     expect(base.getItem(SAVE_KEY)).toBe(originalRaw);
     expect(store.getPersistence().message).toMatch(/safely|read/);
     guarded.deniedKeys.delete(SAVE_KEY);
     expect(store.dispatch({ type: 'setMotion', motion: 'full' })).toBe(false);
     expect(base.getItem(SAVE_KEY)).toBe(originalRaw);
     expect(store.getPersistence().kind).toBe('conflict');
+    store.dispose();
+  });
+
+  it('keeps state and persistence snapshots referentially stable and defensive', () => {
+    const store = createGameStore({ storage: new MemoryStorage(), seedSource: () => 0 });
+    const firstState = store.getState();
+    const firstPersistence = store.getPersistence();
+    expect(store.getState()).toBe(firstState);
+    expect(store.getPersistence()).toBe(firstPersistence);
+    firstState.credits = 9000;
+    firstState.settings.motion = 'full';
+    expect(store.getState()).toBe(firstState);
+    expect(store.getState().credits).toBe(0);
+    expect(store.getState().settings.motion).toBe('system');
+    store.dispose();
+  });
+
+  it('reconciles a started save once but does not rewrite an interrupted save on every load', () => {
+    const storage = new MemoryStorage();
+    const source = createGameStore({ storage, seedSource: () => 0 });
+    expect(source.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    source.dispose();
+
+    const writesBeforeRecovery = storage.writes.length;
+    const firstReload = createGameStore({ storage, seedSource: () => 1 });
+    expect(firstReload.getState().lastLaunch?.status).toBe('interrupted');
+    const writesAfterRecovery = storage.writes.length;
+    expect(writesAfterRecovery).toBe(writesBeforeRecovery + 2);
+    firstReload.dispose();
+
+    const secondReload = createGameStore({ storage, seedSource: () => 2 });
+    expect(secondReload.getState().lastLaunch?.status).toBe('interrupted');
+    expect(storage.writes.length).toBe(writesAfterRecovery);
+    secondReload.dispose();
+  });
+
+  it('settles once in memory when storage becomes unreadable during flight', () => {
+    const base = new MemoryStorage();
+    const storage = new SelectiveReadStorage(base, new Set<string>());
+    const store = createGameStore({ storage, seedSource: () => 0 });
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const active = store.getState().activeLaunch!;
+    const startedRaw = base.getItem(SAVE_KEY);
+    storage.deniedKeys.add(SAVE_KEY);
+
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: active.runId, playbackId: active.playbackId })).toBe(true);
+    expect(store.getState().credits).toBe(19);
+    expect(store.getState().activeLaunch).toBeNull();
+    expect(base.getItem(SAVE_KEY)).toBe(startedRaw);
+    expect(store.dispatch({ type: 'settleNewLaunch', runId: active.runId, playbackId: active.playbackId })).toBe(false);
+
+    storage.deniedKeys.delete(SAVE_KEY);
+    expect(store.dispatch({ type: 'buyUpgrade', kind: 'airframe' })).toBe(true);
+    expect(parseSave(base.getItem(SAVE_KEY)!).progress.levels.airframe).toBe(1);
+    expect(parseSave(base.getItem(SAVE_KEY)!).progress.credits).toBe(7);
+    store.dispose();
+  });
+
+  it('reports replacement acceptance separately from durable reset success', () => {
+    const store = createGameStore({ storage: new FailingStorage(), seedSource: () => 0 });
+    settleNewLaunch(store);
+    expect(store.getState().credits).toBe(19);
+    expect(store.reset(true)).toBe(true);
+    expect(store.getState().credits).toBe(0);
+    expect(store.getPersistence().kind).toBe('recovery');
+    expect(store.getPersistence().message).toMatch(/could not be saved|protected/);
     store.dispose();
   });
 
@@ -320,6 +386,22 @@ describe('phase 2 save contract', () => {
     store.dispose();
   });
 
+  it('rejects revision overflow before acquiring a gameplay seed', () => {
+    const storage = new MemoryStorage();
+    const source = createGameStore({ storage });
+    const raw = JSON.parse(source.exportSave()) as { revision: number };
+    source.dispose();
+    raw.revision = Number.MAX_SAFE_INTEGER;
+    storage.values.set(SAVE_KEY, JSON.stringify(raw));
+    let seedCalls = 0;
+    const store = createGameStore({ storage, seedSource: () => { seedCalls += 1; return 0; } });
+
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(false);
+    expect(seedCalls).toBe(0);
+    expect(store.getState().launchesStarted).toBe(0);
+    store.dispose();
+  });
+
   it('blocks a stale tab before it can reserve or overwrite a launch', () => {
     const storage = new MemoryStorage();
     const first = createGameStore({ storage, seedSource: () => 0 });
@@ -356,5 +438,20 @@ describe('phase 2 save contract', () => {
     expect(target.getState().launchesCompleted).toBe(1);
     source.dispose();
     target.dispose();
+  });
+
+  it('rejects impossible completed-count combinations while preserving interruption gaps', () => {
+    const storage = new MemoryStorage();
+    const store = createGameStore({ storage, seedSource: () => 0 });
+    settleNewLaunch(store);
+    expect(store.dispatch({ type: 'reserveNewLaunch' })).toBe(true);
+    const impossible = JSON.parse(store.exportSave()) as { progress: { launchesCompleted: number } };
+    impossible.progress.launchesCompleted = 2;
+    expect(() => parseSave(JSON.stringify(impossible))).toThrow(/settled run ID|unsettled/);
+    expect(store.dispatch({ type: 'markInterrupted' })).toBe(true);
+    const legitimate = JSON.parse(store.exportSave()) as { progress: { launchesCompleted: number; lastSettledRunId: number | null } };
+    expect(legitimate.progress.launchesCompleted).toBe(1);
+    expect(legitimate.progress.lastSettledRunId).toBe(1);
+    store.dispose();
   });
 });

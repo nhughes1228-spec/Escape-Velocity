@@ -8,6 +8,10 @@ export interface AltitudeScale {
 export const ROCKET_ANCHOR_HEIGHT_PX = 87;
 export const ROCKET_TOP_MARGIN_PX = 20;
 
+export function rocketAnchorHeightPx(bodyHeightPx: number): number {
+  return bodyHeightPx + 29;
+}
+
 export function cameraMaxAltitudeM(recordM: number, nominalPeakM: number): number {
   const targetM = Math.max(250, Math.max(0, recordM) * 1.1, Math.max(0, nominalPeakM) * 1.1);
   return Math.max(100, Math.ceil(targetM / 100) * 100);

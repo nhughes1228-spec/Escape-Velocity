@@ -1,6 +1,6 @@
 # Balance framework — opening-v2
 
-> Phase 2 checkpoint (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime configuration is `opening-v2` with `vertical-v1.1`; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the domain/save checkpoint. The accepted public `main` deployment remains Phase 1 pending Astra review and UI integration. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
+> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime configuration is `opening-v2` with `vertical-v1.1`; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the integrated controller/UI candidate. The accepted public `main` deployment remains Phase 1 pending release verification. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
 
 Status: measured Phase 2 checkpoint configuration, not human-playtested through the UI. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
 
@@ -101,11 +101,11 @@ Levels below are `(engine, fuel, airframe)`; ignition is zero. Trace-free design
 | 4,4,4 | 805.39 m | 15.55 s | 38 |
 | 8,8,8 | 1,647.88 m | 20.66 s | 52 |
 
-Tank first gives more altitude but a longer flight; Engine first improves altitude with almost unchanged duration. This is a useful interaction that altitude-per-Credit alone misses. Ignition competes as a time-saving purchase rather than a physics boost. Its first level saves 0.3 seconds per flight, so playtest whether it feels worth buying; do not treat numerical availability as evidence of appeal.
+Tank first gives more altitude but a longer flight; Engine first improves altitude with almost unchanged duration. This is a useful interaction that altitude-per-Credit alone misses. Ignition competes as a time-saving purchase rather than a physics boost. Its first level saves 0.5 seconds per flight under the approved table, so playtest whether it feels worth buying; do not treat numerical availability as evidence of appeal.
 
 ## Phase 2 pacing evidence and targets
 
-The production campaign starts with zero Credits. It launches, pays repeat income only, then buys affordable upgrades repeatedly. The committed report uses production reward/cost/recipe/variance helpers, 32 deterministic seeds per policy and recomputes marginal values after each purchase. Timing assumes 1× playback and 4 s for decision/result review per launch; no background/offline time. This is a baseline, not an optimal policy or a human study.
+The production campaign starts with zero Credits. It launches, pays repeat income only, then buys affordable upgrades repeatedly. The committed report uses production reward/cost/recipe/variance helpers, six explicitly named policies with 32 deterministic seeds each, nominal and variance-endpoint convergence checks, and recomputes marginal values after each purchase. It reports fifth-launch altitude, 500 m/1 km pacing, no-purchase gaps and final-purchase time. Timing assumes 1× playback and 4 s for decision/result review per launch; no background/offline time. This is a baseline, not an optimal policy or a human study.
 
 | Objective | Active-play target | Current evidence |
 | --- | --- | --- |
@@ -114,7 +114,7 @@ The production campaign starts with zero Credits. It launches, pays repeat incom
 | 10 km | 20–35 minutes cumulative | Provisional; requires Phase 5 family, not reachable with opening caps |
 | 100 km | 60–100 minutes cumulative | Provisional; requires Phase 6 family calibration and playback improvements |
 
-Opening research supports the finite Phase 2 opening and the later 1 km milestone loop. Do not tune opening levels upward without bound to force later timing targets. Each family must have a measured capability envelope, affordable entry build and saved-progress transition. Longer trajectories should use telemetry/playback QoL rather than require several minutes of repeated waiting.
+Opening research supports the finite Phase 2 opening and the later 1 km milestone loop. The six-policy report is evidence for pacing, not a claim that every route or player behaves identically. Do not tune opening levels upward without bound to force later timing targets. Each family must have a measured capability envelope, affordable entry build and saved-progress transition. Longer trajectories should use telemetry/playback QoL rather than require several minutes of repeated waiting.
 
 ## Balance workflow and anti-runaway controls
 
@@ -122,6 +122,6 @@ Keep one versioned numeric config, deterministic solver, campaign runner and com
 
 Bounds, additive engine/tank improvements, diminishing airframe gains, mass coupling, square-root rewards and quadratic prices limit the opening. Physical caps also make impossible goals visible as content limits rather than infinite grinds. A family transition introduces a new engineering choice with an explicit finite budget; never stacks every prior era's percentage bonus. Do not add repeat milestone awards, best-record compounding or uncapped playback/automation multipliers.
 
-Recommended next campaign policies: reward-per-active-second, save-for-best (allow waiting instead of buying every affordable option), engine-only/fuel-only/airframe-only stress cases, ignition-first, seeded random choice, a short look-ahead optimizer and a novice who occasionally makes no purchase. For each report time/launches to milestones, median and worst waits, final ownership, failed flights, income composition and dominant upgrades. Cross-check a few policies with human playtests and record assumptions/seeds. No claim of strategy diversity until tested.
+The permanent report currently names cheapest, physical-gain, throughput, Ignition-first, Engine-first and seeded-random choice. Future audits may add save-for-best, engine-only/fuel-only/airframe-only stress cases, look-ahead and novice policies; these are not silently conflated with the current six. For each report time/launches to milestones, median and worst waits, final ownership, failed flights, income composition and dominant upgrades. Cross-check a few policies with human playtests and record assumptions/seeds. No claim of strategy diversity until tested.
 
-Perturb thrust, fuel, mass, CdA, prices and reward coefficient ±10%; measure sensitivity rather than fitting a single route. Assert no softlock within the supported family. New families require convergence and mass/flow checks before economy tuning. Phase 1's production-solver report reproduces the reference and the temporary Python implementation is retired. The Phase 2 checkpoint report now covers seeded variance and no-grant pacing; human UI pacing remains pending the post-review Phase 2 integration.
+Perturb thrust, fuel, mass, CdA, prices and reward coefficient ±10%; measure sensitivity rather than fitting a single route. Assert no softlock within the supported family. New families require convergence and mass/flow checks before economy tuning. Phase 1's production-solver report reproduces the reference and the temporary Python implementation is retired. The Phase 2 production report now covers seeded variance, endpoint convergence and six no-grant policy models; human UI pacing remains a release-playtest task.

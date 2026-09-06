@@ -25,3 +25,11 @@ Original prompt: Finish the Phase 1 GitHub Pages publishing workflow after the r
 - Added defensive state snapshots and pre-publication save/revision validation so external nested mutations and revision overflow cannot alter authoritative settlement state.
 - Added focused regression coverage in `tests/save.test.ts` and `tests/physics.test.ts`. Current checkpoint verification: 47 unit tests pass, typecheck passes, root production build passes, balance report reproduces, local E2E passes (3), and Pages-subpath E2E passes (2). Browser smoke remains the Phase 1 UI by design.
 - Next step: return the correction commit for Astra’s focused gate review; only after approval should broad Credits/upgrade/Settings UI integration begin.
+
+## 2026-09-05 — Phase 2 controller/UI integration
+
+- Re-audited Astra’s focused PASS at `9e0851c` and started `codex/phase-2-ui-integration` from the approved correction history; no Phase 3 systems were added.
+- Kept valid in-memory play available when storage reads fail while preserving protected/unknown bytes and reporting the session as unsaved. Added stable defensive state/persistence snapshots for React subscriptions, one-time started-save reconciliation, explicit acceptance-versus-durability messaging, counter relations and pre-seed revision/playback overflow checks.
+- Replaced the Phase 1 reducer-owned screen with the controller-backed Phase 2 surface: Credits and record, paid seeded launches, four shared-selector upgrade cards, visibly distinct physical silhouette levels, historical unpaid replay, motion settings, save export/import/recovery/reset and interrupted reload handling.
+- Expanded the permanent balance report to six explicitly named strategies, fifth-launch/500 m/1 km/final-purchase pacing and nominal plus variance-endpoint timestep convergence. The approved physics/economy configuration remains unchanged.
+- Added browser coverage for paid launch → reward → purchase → improved launch → reload → unpaid replay, interrupted reload and Settings; local root and Pages-subpath browser suites pass after sequential execution.

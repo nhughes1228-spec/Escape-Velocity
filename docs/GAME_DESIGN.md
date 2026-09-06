@@ -1,8 +1,8 @@
 # Escape Velocity — game design
 
-> Phase 2 checkpoint (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the implemented domain/save foundation. The accepted public `main` build remains Phase 1 while broad Phase 2 UI integration awaits Astra review. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
+> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the controller, UI, domain and save implementation. The accepted public `main` build remains Phase 1 until the integrated candidate is verified and published. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
 
-Status: opening rules plus Phase 2 domain/save checkpoint, 2026-09-05. Later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
+Status: opening rules plus Phase 2 integrated candidate, 2026-09-05. Later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
 
 ## Fantasy and core loop
 
@@ -20,7 +20,7 @@ All four cards exist in the opening but advanced diagnostic detail is optional a
 
 ## Phase 2 requirements and current checkpoint
 
-These were requirements from the Phase 1 playtest. The domain, settlement and save foundations now implement them on the Phase 2 checkpoint branch; Phase 1 intentionally remains the public level-zero starter surface until Astra reviews the checkpoint and the focused UI is integrated.
+These were requirements from the Phase 1 playtest. The controller, domain, settlement, save system and focused UI now implement them on this Phase 2 integration branch; the public level-zero deployment remains Phase 1 until release verification is complete.
 
 Phase 2 must make the incremental loop playable: **launch → reach apogee → earn Credits → purchase an upgrade → improve the rocket → launch again**. A completed valid flight must settle its reward from the authoritative result, and a purchased Engine, Fuel Tank, Airframe or Ignition level must produce a visible, understandable consequence on the next launch. The loop must preserve free retries and must not require a separate fuel-purchase step.
 

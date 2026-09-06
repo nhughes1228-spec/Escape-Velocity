@@ -100,6 +100,47 @@ export function cloneGameState(state: GameState): GameState {
   };
 }
 
+/**
+ * Create the public store snapshot. The clone keeps the authoritative graph
+ * private and the proxy makes accidental writes from a component or test a
+ * harmless no-op. A proxy is used instead of Object.freeze so a mistaken
+ * assignment in a strict-mode React callback cannot crash the whole screen.
+ */
+export function createGameStateSnapshot(state: GameState): GameState {
+  const clone = cloneGameState(state);
+  const proxies = new WeakMap<object, object>();
+
+  const readonly = (value: unknown): unknown => {
+    if (value === null || typeof value !== 'object') return value;
+    const cached = proxies.get(value);
+    if (cached) return cached;
+    const proxy = new Proxy(value, {
+      get(target, property, receiver) {
+        return readonly(Reflect.get(target, property, receiver));
+      },
+      set() { return true; },
+      defineProperty() { return true; },
+      deleteProperty() { return true; },
+    });
+    proxies.set(value, proxy);
+    return proxy;
+  };
+
+  return readonly(clone) as GameState;
+}
+
+export function validateNewLaunchAdmission(state: GameState): void {
+  if (!canReserveNewLaunch(state)) throw new Error('A launch is already in progress.');
+  if (!Number.isSafeInteger(state.nextRunId) || !Number.isSafeInteger(state.launchesStarted) ||
+      state.nextRunId < 1 || state.nextRunId >= Number.MAX_SAFE_INTEGER ||
+      state.launchesStarted < 0 || state.launchesStarted >= Number.MAX_SAFE_INTEGER) {
+    throw new RangeError('Launch counters are not safe to increment.');
+  }
+  if (!Number.isSafeInteger(state.nextPlaybackId) || state.nextPlaybackId < 1 || state.nextPlaybackId >= Number.MAX_SAFE_INTEGER) {
+    throw new RangeError('Playback counters are not safe to increment.');
+  }
+}
+
 export type GameAction =
   | { type: 'reserveNewLaunch'; seed: number; playbackId?: number }
   | { type: 'presentationPhase'; runId: number; playbackId: number; phase: 'playing' }
@@ -139,10 +180,7 @@ export function canStartReplay(state: GameState): boolean {
 
 function reserveNewLaunch(state: GameState, seed: number, requestedPlaybackId = state.nextPlaybackId): GameState {
   if (!canReserveNewLaunch(state)) return state;
-  if (!Number.isSafeInteger(state.nextRunId) || !Number.isSafeInteger(state.launchesStarted) ||
-      state.nextRunId < 1 || state.nextRunId >= Number.MAX_SAFE_INTEGER || state.launchesStarted < 0 || state.launchesStarted >= Number.MAX_SAFE_INTEGER) {
-    throw new RangeError('Launch counters are not safe to increment.');
-  }
+  validateNewLaunchAdmission(state);
   if (!Number.isSafeInteger(requestedPlaybackId) || requestedPlaybackId < 1 || requestedPlaybackId >= Number.MAX_SAFE_INTEGER) {
     throw new RangeError('Playback counters are not safe to increment.');
   }

@@ -94,7 +94,7 @@ export function usePlayback(activeLaunch: ActiveLaunch | null, onComplete: (runI
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('escape-velocity:test-tick', onTestTick);
     };
-  }, [activeLaunch?.runId, activeLaunch?.playbackId, activeLaunch?.result, activeLaunch?.vehicle]);
+  }, [activeLaunch?.runId, activeLaunch?.playbackId]);
 
   const ignitionDelayS = activeLaunch?.vehicle.ignitionDelayS ?? 0;
   const result = activeLaunch?.result;

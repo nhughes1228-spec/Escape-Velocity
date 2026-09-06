@@ -2,9 +2,10 @@ import { createGameplaySeed } from './variance';
 import {
   canReserveNewLaunch,
   canStartReplay,
-  cloneGameState,
+  createGameStateSnapshot,
   createInitialGameState,
   gameReducer,
+  validateNewLaunchAdmission,
   type GameAction,
   type GameState,
   type MotionSetting,
@@ -48,6 +49,8 @@ export interface GameStore {
   getState(): GameState;
   getPersistence(): PersistenceSnapshot;
   subscribe(listener: () => void): () => void;
+  /** Returns whether the transition was accepted in memory. Check
+   * getPersistence() to know whether it was durably saved. */
   dispatch(command: GameCommand): boolean;
   recoverBackup(): boolean;
   importSave(raw: string, confirmed: boolean): boolean;
@@ -64,6 +67,7 @@ interface LoadedState {
   observedRaw: string | null;
   storageGate: StorageGate;
   persistence: PersistenceSnapshot;
+  reconcileInterrupted: boolean;
 }
 
 function unavailableStorage(): SaveStorage {
@@ -109,7 +113,8 @@ function persistenceForRecovery(inspection: SaveInspection): PersistenceSnapshot
 function loadedState(inspection: SaveInspection): LoadedState {
   if (inspection.primary.status === 'valid' && inspection.primary.save) {
     let state = stateFromSave(inspection.primary.save);
-    if (state.lastLaunch?.status === 'started') {
+    const reconcileInterrupted = inspection.primary.save.lastLaunch?.status === 'started';
+    if (reconcileInterrupted) {
       state = gameReducer(state, { type: 'markInterrupted' });
     }
     return {
@@ -125,6 +130,7 @@ function loadedState(inspection: SaveInspection): LoadedState {
         protectedBackupRaw: null,
         backupAvailable: inspection.backup.save !== null,
       },
+      reconcileInterrupted,
     };
   }
 
@@ -142,6 +148,7 @@ function loadedState(inspection: SaveInspection): LoadedState {
         protectedBackupRaw: null,
         backupAvailable: false,
       },
+      reconcileInterrupted: false,
     };
   }
 
@@ -151,6 +158,7 @@ function loadedState(inspection: SaveInspection): LoadedState {
     observedRaw: inspection.primary.status === 'unknown' ? null : inspection.primary.raw,
     storageGate: storageGateFor(inspection),
     persistence: persistenceForRecovery(inspection),
+    reconcileInterrupted: false,
   };
 }
 
@@ -169,6 +177,8 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
   let observedRaw = loaded.observedRaw;
   let storageGate = loaded.storageGate;
   let persistence = loaded.persistence;
+  let stateSnapshot = createGameStateSnapshot(state);
+  let persistenceSnapshot: PersistenceSnapshot = Object.freeze({ ...persistence });
   let disposed = false;
   // Playback IDs are deliberately volatile and controller-scoped. They are
   // never restored from a save, so reset/import/recovery cannot make a late
@@ -182,7 +192,13 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
 
   const setPersistence = (next: PersistenceSnapshot) => {
     persistence = next;
+    persistenceSnapshot = Object.freeze({ ...next });
     notify();
+  };
+
+  const publishState = (nextState: GameState) => {
+    state = nextState;
+    stateSnapshot = createGameStateSnapshot(nextState);
   };
 
   const reportError = (message: string) => {
@@ -224,7 +240,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
     if (storageGate !== 'ready' && !replaceProtected) {
       // A temporary in-memory session is allowed, but it must never overwrite
       // protected or unreadable bytes without an explicit user decision.
-      state = nextState;
+      publishState(nextState);
       revision = nextRevision;
       setPersistence({
         ...persistence,
@@ -236,7 +252,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
     }
 
     const result = writeSave(storage, save);
-    state = nextState;
+    publishState(nextState);
     revision = nextRevision;
     if (result.ok) {
       observedRaw = result.raw;
@@ -272,8 +288,10 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
     return true;
   };
 
-  const refreshUnknownGate = (): boolean => {
-    if (storageGate !== 'unknown') return true;
+  type StorageCheck = 'ok' | 'blocked' | 'conflict';
+
+  const refreshUnknownGate = (): StorageCheck => {
+    if (storageGate !== 'unknown') return 'ok';
     const refreshed = inspectStorageSafely();
     if (refreshed.primary.status === 'unknown') {
       setPersistence({
@@ -285,7 +303,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
         protectedBackupRaw: refreshed.backup.raw,
         backupAvailable: refreshed.backup.save !== null,
       });
-      return false;
+      return 'blocked';
     }
     if (refreshed.primary.raw !== observedRaw) {
       setPersistence({
@@ -294,12 +312,12 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
         message: 'Progress changed while storage access was unavailable. Reload before continuing.',
         error: null,
       });
-      return false;
+      return 'conflict';
     }
     storageGate = storageGateFor(refreshed);
     if (storageGate !== 'ready') {
       setPersistence(persistenceForRecovery(refreshed));
-      return false;
+      return 'blocked';
     }
     setPersistence({
       kind: 'saved',
@@ -309,11 +327,11 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
       protectedBackupRaw: null,
       backupAvailable: false,
     });
-    return true;
+    return 'ok';
   };
 
-  const checkConflict = (): boolean => {
-    if (disposed || persistence.kind === 'conflict') return false;
+  const checkConflict = (): StorageCheck => {
+    if (disposed || persistence.kind === 'conflict') return 'conflict';
     let currentRaw: string | null;
     try {
       currentRaw = storage.getItem(SAVE_KEY);
@@ -325,7 +343,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
         message: 'Progress could not be checked safely. No write was attempted.',
         error: error instanceof Error ? error.message : 'Storage read failed.',
       });
-      return false;
+      return 'blocked';
     }
     if (currentRaw !== observedRaw) {
       setPersistence({
@@ -334,14 +352,14 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
         message: 'Progress changed in another tab. Reload before continuing.',
         error: null,
       });
-      return false;
+      return 'conflict';
     }
     return refreshUnknownGate();
   };
 
   // A started recipe is reconciled to interrupted before the first subscriber
   // can use the store. This write is safe because the primary was validated.
-  if (inspection.primary.status === 'valid' && loaded.state.lastLaunch?.status === 'interrupted') {
+  if (loaded.reconcileInterrupted) {
     persist(state);
   }
 
@@ -351,11 +369,18 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
     // must not consume entropy or create a playback identity.
     if (command.type === 'reserveNewLaunch' && !canReserveNewLaunch(state)) return false;
     if (command.type === 'startReplay' && !canStartReplay(state)) return false;
-    if (isDurable(command) && !checkConflict()) return false;
+    if (isDurable(command) && checkConflict() === 'conflict') return false;
 
     let action: GameAction;
     try {
       if (command.type === 'reserveNewLaunch') {
+        validateNewLaunchAdmission(state);
+        if (!Number.isSafeInteger(revision) || revision < 0 || revision >= Number.MAX_SAFE_INTEGER) {
+          throw new RangeError('Change rejected because the save revision cannot be advanced safely.');
+        }
+        if (!Number.isSafeInteger(nextPlaybackIdentity) || nextPlaybackIdentity < 1 || nextPlaybackIdentity >= Number.MAX_SAFE_INTEGER) {
+          throw new RangeError('Playback identity is not safe to increment.');
+        }
         const seed = seedSource();
         action = { type: 'reserveNewLaunch', seed, playbackId: allocatePlaybackIdentity() };
       } else if (command.type === 'startReplay') {
@@ -366,7 +391,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
       const nextState = gameReducer(state, action);
       if (nextState === state) return false;
       if (isDurable(command)) return persist(nextState);
-      state = nextState;
+      publishState(nextState);
       notify();
       return true;
     } catch (error) {
@@ -376,7 +401,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
   };
 
   const recoverBackup = (): boolean => {
-    if (disposed || state.activeLaunch || !checkConflict()) return false;
+    if (disposed || state.activeLaunch || checkConflict() !== 'ok') return false;
     const current = inspectStorageSafely();
     if (current.primary.status === 'unknown') {
       setPersistence({ ...persistenceForRecovery(current), error: current.readError });
@@ -401,7 +426,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
   };
 
   const importSave = (raw: string, confirmed: boolean): boolean => {
-    if (disposed || !confirmed || state.activeLaunch || !checkConflict()) return false;
+    if (disposed || !confirmed || state.activeLaunch || checkConflict() !== 'ok') return false;
     let save: SaveV1;
     try {
       save = parseSave(raw);
@@ -427,7 +452,7 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
   };
 
   const reset = (confirmed: boolean): boolean => {
-    if (disposed || !confirmed || state.activeLaunch || !checkConflict()) return false;
+    if (disposed || !confirmed || state.activeLaunch || checkConflict() !== 'ok') return false;
     return persist(createInitialGameState(), true);
   };
 
@@ -444,8 +469,8 @@ export function createGameStore(options: GameStoreOptions = {}): GameStore {
   if (typeof window !== 'undefined') window.addEventListener('storage', onStorage);
 
   return {
-    getState: () => cloneGameState(state),
-    getPersistence: () => ({ ...persistence }),
+    getState: () => stateSnapshot,
+    getPersistence: () => persistenceSnapshot,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

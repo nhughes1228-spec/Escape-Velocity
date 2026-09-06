@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { TraceSample } from '../simulation/types';
+import type { RocketLevels } from '../game/vehicle';
 import { visibleTrace } from '../presentation/trace';
-import { altitudeToCanvasY, cameraMaxAltitudeM, createAltitudeScale } from '../presentation/altitudeScale';
+import { altitudeToCanvasY, cameraMaxAltitudeM, createAltitudeScale, rocketAnchorHeightPx } from '../presentation/altitudeScale';
 
 interface RocketCanvasProps {
   trace: TraceSample[];
@@ -14,6 +15,7 @@ interface RocketCanvasProps {
   status: 'ready' | 'ignition' | 'playing' | 'replay' | 'result';
   ignitionElapsedS: number;
   ignitionProgress: number;
+  levels: RocketLevels;
 }
 
 function altitudeLabel(valueM: number): string {
@@ -31,6 +33,7 @@ export function RocketCanvas({
   status,
   ignitionElapsedS,
   ignitionProgress,
+  levels,
 }: RocketCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -53,8 +56,9 @@ export function RocketCanvas({
     // Camera framing is based on nominal capability and record, not the
     // hidden actual peak of a seeded launch. Keep the range in stable 100 m
     // bands so same-build launches remain visually comparable.
+    const bodyHeight = 58 + Math.min(10, levels.fuel * 1.25);
     const scaleMaxM = cameraMaxAltitudeM(recordM, nominalPeakM);
-    const altitudeScale = createAltitudeScale(height, scaleMaxM);
+    const altitudeScale = createAltitudeScale(height, scaleMaxM, rocketAnchorHeightPx(bodyHeight));
     const { groundY } = altitudeScale;
     const x = width * 0.5;
     const yForAltitude = (altitudeM: number) => altitudeToCanvasY(altitudeM, altitudeScale);
@@ -131,8 +135,7 @@ export function RocketCanvas({
     // specification and never reads canvas dimensions or pixels. The fin tips
     // are the visual altitude anchor, so the same y-coordinate also drives the
     // ruler, trace, current-altitude guide and numeric telemetry.
-    const bodyWidth = 26;
-    const bodyHeight = 58;
+    const bodyWidth = 26 + Math.min(9, levels.airframe * 1.1);
     const rocketBaseOffset = bodyHeight / 2 + 12;
     const ignitionJitter = status === 'ignition' && !reducedMotion
       ? Math.sin(ignitionElapsedS * 34) * (0.7 + ignitionProgress * 1.5)

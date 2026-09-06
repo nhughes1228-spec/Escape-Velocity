@@ -1,8 +1,8 @@
 # Architecture
 
-> Phase 2 review (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime remains Phase 1 at review commit `87cbc30`. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
+> Phase 2 integration candidate (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) is the detailed implementation handoff. Runtime keeps the approved `opening-v2` / `vertical-v1.1` formulas and now mounts the controller-backed Phase 2 UI on this branch. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid. Its measured Phase 2 campaigns exclude the Phase 3 milestone grants used by the older report.
 
-Status: Phase 2 domain/save checkpoint, 2026-09-05. Phase 1 remains the accepted public deployment; this branch implements the Phase 2 domain, settlement and persistence foundation and intentionally pauses before broad upgrade UI integration. Prefer small explicit modules over frameworks for hypothetical future systems.
+Status: Phase 2 controller/UI integration candidate, 2026-09-05. Phase 1 remains the accepted public deployment until the integrated branch is released. The branch implements the approved Phase 2 domain, settlement, persistence and focused UI; prefer small explicit modules over frameworks for hypothetical future systems.
 
 ## Stack
 
@@ -43,7 +43,7 @@ Local development and the ordinary production preview use the host-root Vite bas
 3. The launch command boundary obtains one seed, snapshots levels, derived nominal/effective specs, balance/model versions and approved numeric options, then allocates one monotonically increasing run ID.
 4. A presentation controller plays the immutable trace after ignition. The physics result may be computed beforehand; it is not awarded beforehand.
 5. `settleNewLaunch(runId)` consumes only the pending paid launch once, updates record/Credits/counts/summary and clears the active launch atomically. Replay is a separate read-only mode using the saved recipe; UI cannot submit arbitrary altitude or reward amounts.
-6. The store persists the complete durable envelope after reservation, settlement, purchase, settings and recovery commands. Components subscribe to state and dispatch commands.
+6. The store persists the complete durable envelope after reservation, settlement, purchase, settings and recovery commands. Components subscribe to stable state/persistence snapshots and dispatch commands; the UI never owns progression state.
 
 Use discriminated unions for status and outcomes, not scattered booleans. Define `FlightOutcome = 'apogee' | 'noLiftoff' | 'impact' | 'invalid' | 'limit'`; application cancellation discards the active flight. Distinguish `ready`, `ignition`, `playing`, `replay`, `result`. Runtime recipes use `balanceVersion: 'opening-v2'` and `modelVersion: 'vertical-v1.1'`; orbital results must later use a separate model without abusing altitude fields. Do not introduce an abstract plugin registry.
 
@@ -85,7 +85,7 @@ Settle currency, record, counts and the launch summary in one new envelope and o
 
 Simulation tests include PHYSICS analytic cases, fractional burnout, no liftoff, invalid inputs, duration cap, recorded reference fixtures and timestep convergence. Parametric opening sweeps verify all builds lift and terminate, while identifying reductions in altitude from a purchase. General physics tests must not assert “fuel always improves altitude.” Curve/config validation checks caps, positive masses and safe prices. Economy tests cover reward rounding, price vectors, duplicate settlements, insufficient funds and interrupted flights. Save tests cover round-trip, malformed/oversized/future data, recipe validation, backup recovery, failure to write, imports and reload after reservation/award.
 
-Browser smoke: keyboard launch, ignition/burnout/coast/result, replay without reload, record update, no hidden-system controls, mobile-size controls, no console errors; add buy/save/reload in Phase 2. Visually inspect first flight and previous-record comparison. Exact aesthetics are not screenshot pixel tests. Record actual commands/results in a reviewable handoff or PR.
+Browser smoke: keyboard launch, ignition/burnout/coast/result, paid launch/reward, buy/save/reload, unpaid replay, interrupted reload, no hidden-system controls, mobile-size controls and no console errors. Visually inspect first flight, upgrade silhouette and previous-record comparison. Exact aesthetics are not screenshot pixel tests. Record actual commands/results in a reviewable handoff or PR.
 
 ## Future extension and decision discipline
 
