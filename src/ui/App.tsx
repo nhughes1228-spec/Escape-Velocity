@@ -3,7 +3,6 @@ import { openingBalance } from '../config/opening';
 import { deriveVehicle, type RocketLevels } from '../game/vehicle';
 import { canPurchaseUpgrade, upgradeCardsFor } from '../game/selectors';
 import { createGameStore, type GameStore, type PersistenceSnapshot } from '../game/store';
-import { simulateVertical } from '../simulation/vertical';
 import type { FlightOutcome, TraceSample } from '../simulation/types';
 import { usePlayback } from '../presentation/clock';
 import { sampleTrace } from '../presentation/trace';
@@ -81,6 +80,8 @@ export function App() {
   const [exportText, setExportText] = useState('');
   const [settingsNotice, setSettingsNotice] = useState<string | null>(null);
   const [recentMode, setRecentMode] = useState<'new' | 'replay'>('new');
+  const [newGameOpen, setNewGameOpen] = useState(false);
+  const [purchasedKind, setPurchasedKind] = useState<typeof upgradeCards[number]['kind'] | null>(null);
 
   const playback = usePlayback(state.activeLaunch, (runId, playbackId) => {
     const active = gameStore.getState().activeLaunch;
@@ -118,18 +119,11 @@ export function App() {
     ? Math.min(1, Math.max(0, playback.elapsedS / ignitionDelayS))
     : 0;
   const ignitionRemainingS = Math.max(0, ignitionDelayS - playback.elapsedS);
-  const displayLevels = state.activeLaunch?.levels ?? state.levels;
+  const historicalLevels = state.lastLaunch?.status === 'settled' && state.lastResult
+    ? state.lastLaunch.recipe.levels
+    : null;
+  const displayLevels = state.activeLaunch?.levels ?? historicalLevels ?? state.levels;
   const displayVehicle = state.activeLaunch?.vehicle ?? deriveVehicle(displayLevels, openingBalance);
-  const nominalPeakM = useMemo(() => {
-    if (state.activeLaunch) return state.activeLaunch.nominalPeakM;
-    const result = simulateVertical(deriveVehicle(displayLevels, openingBalance), openingBalance.environment, {
-      ...openingBalance.simulation,
-      balanceVersion: openingBalance.balanceVersion,
-      modelVersion: openingBalance.modelVersion,
-      collectTrace: false,
-    });
-    return result.maximumAltitudeM;
-  }, [displayLevels, state.activeLaunch]);
   const canvasSample: TraceSample = displayedSample ?? {
     timeS: 0,
     altitudeM: 0,
@@ -159,6 +153,7 @@ export function App() {
 
   const launch = () => {
     setRecentMode('new');
+    setPurchasedKind(null);
     gameStore.dispatch({ type: 'reserveNewLaunch' });
   };
 
@@ -170,9 +165,9 @@ export function App() {
   const purchase = (kind: typeof upgradeCards[number]['kind']) => {
     if (!canPurchaseUpgrade(state, kind)) return;
     if (gameStore.dispatch({ type: 'buyUpgrade', kind })) {
-      const label = kind === 'fuel' ? 'Fuel Tank' : kind[0].toUpperCase() + kind.slice(1);
       setRecentMode('new');
-      setSettingsNotice(`${label} upgraded.`);
+      setPurchasedKind(kind);
+      setSettingsNotice(null);
     }
   };
 
@@ -209,14 +204,34 @@ export function App() {
     }
   };
 
+  const openNewGame = () => {
+    if (isActive) return;
+    setSettingsNotice(null);
+    setNewGameOpen(true);
+  };
+
+  const openSettings = () => {
+    setSettingsOpen(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById('settings-panel')?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
   const resetProgress = () => {
-    if (!window.confirm('Reset all Credits, upgrades and records? Export current progress first if you may need it.')) return;
+    if (isActive) return;
     const accepted = gameStore.reset(true);
     const result = gameStore.getPersistence();
     setSettingsNotice(accepted
       ? result.kind === 'saved' ? 'Progress reset and saved.' : 'Reset accepted for this session, but it is not saved yet.'
       : result.error ?? 'Reset was rejected; current progress is unchanged.');
-    if (accepted) setRecentMode('new');
+    if (accepted) {
+      setRecentMode('new');
+      setPurchasedKind(null);
+      setNewGameOpen(false);
+    }
   };
 
   return (
@@ -227,14 +242,37 @@ export function App() {
           <h1>Escape Velocity</h1>
           <p className="subtitle">Build a flight record one careful launch at a time.</p>
         </div>
-        <div className="header-stats">
-          <div className="credits-display" aria-label={`${state.credits} Credits`}><span>Credits</span><strong>{state.credits.toLocaleString()}</strong></div>
-          <div className="status-chip" data-phase={state.status}>
-            <span className="status-dot" aria-hidden="true" />
-            <span>{visiblePhase}</span>
+        <div className="header-right">
+          <div className="header-actions" aria-label="Game actions">
+            <button type="button" className="header-button" onClick={openSettings} aria-controls="settings-content">Settings</button>
+            <button type="button" className="header-button header-button-danger" onClick={openNewGame} disabled={isActive} aria-describedby="new-game-help" title={isActive ? 'New game is unavailable during a launch.' : undefined}>New game</button>
+            <span id="new-game-help" className="sr-only">New game clears Credits, upgrades and records after confirmation.</span>
+          </div>
+          <div className="header-stats">
+            <div className="credits-display" aria-label={`${state.credits} Credits`}><span>Credits</span><strong>{state.credits.toLocaleString()}</strong></div>
+            <div className="status-chip" data-phase={state.status}>
+              <span className="status-dot" aria-hidden="true" />
+              <span>{visiblePhase}</span>
+            </div>
           </div>
         </div>
       </header>
+
+      {newGameOpen && (
+        <div className="dialog-backdrop">
+          <section className="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="new-game-heading">
+            <p className="eyebrow">FRESH FLIGHT PROGRAM</p>
+            <h2 id="new-game-heading">Start a new game?</h2>
+            <p>This clears your Credits, upgrades, personal best and flight log from this browser. Your current save can be exported first.</p>
+            <div className="dialog-actions">
+              <button type="button" className="secondary-button" onClick={exportProgress}>Export save</button>
+              <button type="button" className="secondary-button" onClick={() => { setNewGameOpen(false); setSettingsNotice(null); }}>Cancel</button>
+              <button type="button" className="danger-button" onClick={resetProgress}>Reset progress</button>
+            </div>
+            {settingsNotice && <p className="settings-notice" role="status">{settingsNotice}</p>}
+          </section>
+        </div>
+      )}
 
       <section className="flight-panel" aria-labelledby="flight-heading">
         <div className="panel-heading">
@@ -249,7 +287,6 @@ export function App() {
             trace={displayedResult?.trace ?? []}
             current={canvasSample}
             recordM={state.recordM}
-            nominalPeakM={nominalPeakM}
             simulationTimeS={playback.simulationTimeS}
             showFullTrace={!isActive}
             reducedMotion={reducedMotion}
@@ -270,7 +307,7 @@ export function App() {
             <strong>{visiblePhase}</strong>
           </div>
           <div>
-            <span className="readout-label">Session record</span>
+            <span className="readout-label">Personal best</span>
             <strong>{formatAltitude(state.recordM)}</strong>
           </div>
         </div>
@@ -336,6 +373,7 @@ export function App() {
                     <span className="level-pill">Lv. {card.level}/{card.cap}</span>
                   </div>
                   <p>{effect}</p>
+                  {purchasedKind === card.kind && <p className="upgrade-confirmation" role="status">{card.label} upgraded. The new configuration flies on your next launch.</p>}
                   <button type="button" onClick={() => purchase(card.kind)} disabled={!card.available} aria-label={actionLabel}>
                     {card.cost === null ? 'Fully upgraded' : card.affordable ? `Buy · ${card.cost} Credits` : `${card.cost} Credits needed`}
                   </button>
@@ -362,7 +400,7 @@ export function App() {
               <strong>{outcomeLabel(state.lastResult.outcome)}</strong>
             </div>
             <div>
-              <span className="readout-label">Ignition to apogee</span>
+              <span className="readout-label">Flight time</span>
               <strong>{formatTime(state.lastResult.terminalTimeS)}</strong>
             </div>
             {latestSummary && recentMode !== 'replay' && (
@@ -375,7 +413,7 @@ export function App() {
               {recentMode === 'replay'
                 ? 'Replay complete · no reward. Your saved result and progression are unchanged.'
                 : state.lastResult.outcome === 'apogee'
-                  ? latestSummary?.isNewRecord ? 'New session record. Higher flights earn more Credits.' : 'A clean repeat. Small engine variation makes every launch a little different.'
+                  ? latestSummary?.isNewRecord ? 'New personal best. Higher flights earn more Credits.' : 'A clean repeat. Small engine variation makes every launch a little different.'
                   : 'This launch earned no reward. You can retry immediately.'}
             </p>
             {state.status === 'result' && state.lastLaunch && (
@@ -389,7 +427,7 @@ export function App() {
         )}
       </section>
 
-      <section className="settings-panel">
+      <section id="settings-panel" className="settings-panel">
         <button type="button" className="settings-toggle" onClick={() => setSettingsOpen((open) => !open)} aria-expanded={settingsOpen} aria-controls="settings-content">
           <span><span className="eyebrow">SETTINGS</span><strong>{persistenceLabel(persistence)}</strong></span>
           <span aria-hidden="true">{settingsOpen ? '−' : '+'}</span>
@@ -411,7 +449,7 @@ export function App() {
             <p className="setting-help">Animation only affects presentation. Physics and rewards stay the same.</p>
             <div className="settings-actions">
               <button type="button" className="secondary-button" onClick={exportProgress}>Export save</button>
-              <button type="button" className="danger-button" onClick={resetProgress} disabled={isActive}>Reset progress</button>
+              <button type="button" className="danger-button" onClick={openNewGame} disabled={isActive}>New game</button>
             </div>
             {exportText && <textarea className="save-text" aria-label="Exported save" value={exportText} readOnly rows={4} />}
             {!isActive && (
