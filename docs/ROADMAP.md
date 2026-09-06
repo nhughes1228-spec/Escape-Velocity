@@ -1,10 +1,10 @@
 # Roadmap and project state
 
-Updated: 2026-09-05. Canonical repository: https://github.com/nhughes1228-spec/Escape-Velocity (public).
+Updated: 2026-09-06. Canonical repository: https://github.com/nhughes1228-spec/Escape-Velocity (public).
 
 ## Current state
 
-Phase 1 implementation and the white-screen/playtest corrections remain preserved in `main`. Phase 2 controller-backed Credits/upgrades/replay/Settings integration is merged as `5a69810` and live at the documented GitHub Pages URL. Local root, repository-subpath, CI and live-browser verification passed for deployment. Two human sessions are now reported, with continued dissatisfaction about perceived height, purchase-triggered framing, Ignition and reset discoverability. Final Phase 2 acceptance is **on hold for the presentation/usability pass** in [the playtest response](PHASE_2_PLAYTEST_REVISIONS.md). Phase 3 has not begun.
+Phase 1 implementation and the white-screen/playtest corrections remain preserved in `main`. Phase 2 controller-backed Credits/upgrades/replay/Settings integration is merged as `5a69810` and live at the documented GitHub Pages URL. The focused presentation/usability correction is implemented as `07c205d` on `codex/phase-2-playtest-revisions`; its local and repository-subpath checks pass, but it still requires merge and live-browser verification. Two human sessions are recorded, and final Phase 2 acceptance remains **on hold for this correction and Astra review**. Phase 3 has not begun.
 
 Phase 0 is necessarily the sole non-playable prerequisite. Every implementation phase below must preserve the previous playable game and finish with a playable build plus its acceptance checks. Do not claim Phase 0 itself is playable.
 
@@ -64,4 +64,4 @@ Record phase completion only after its build/tests and relevant human/UI checks 
 
 ## Outstanding decisions
 
-Priority before Phase 5: next vehicle families, transitions and measured pacing to 10 km/100 km. Priority before Phase 7: orbital guidance, mission completion/time horizon, reward transition and presentation. Later: staging interaction, automation/offline policy, mission breadth and endgame. Art style can evolve during Phase 1 without changing physics. The public repository's GitHub Pages workflow is live and verified for the Phase 2 `main` deployment. Two human sessions are recorded; their findings remain unresolved. Next work is the observed-flight camera, grounded scenery, upgrade artwork and accessible New game entry point, followed by separately versioned Ignition evaluation. Final Astra acceptance remains pending; no additional unchanged-build long session is required now.
+Priority before Phase 5: next vehicle families, transitions and measured pacing to 10 km/100 km. Priority before Phase 7: orbital guidance, mission completion/time horizon, reward transition and presentation. Later: staging interaction, automation/offline policy, mission breadth and endgame. Art style can evolve during Phase 1 without changing physics. The public repository's GitHub Pages workflow is live and verified for the Phase 2 `main` deployment. Two human sessions are recorded; their findings are addressed in the `07c205d` presentation/usability correction, which is pending merge and live verification. Separately versioned Ignition evaluation remains deferred. Final Astra acceptance remains pending; no additional unchanged-build long session is required now.

@@ -123,3 +123,16 @@ Required checks for the presentation/usability pass:
 Independent typecheck, **55 unit tests in 9 files**, and root production build pass on `38590e3`. Read current UI/camera/config/report code and relevant design/physics/balance/architecture instructions. A separate Playwright browser session opened live Pages, completed a ~162 m / 19-Credit first flight, bought Engine for 14, and located Reset under expanded Settings. It did not alter the user's browser save. The live console had a `/favicon.ico` 404; no application exception was observed in those interactions. CLI initially lacked its default Chrome path; using the installed Playwright Chromium resolved inspection. This is a focused experience check, not a rerun of every release-browser scenario or a third human playtest.
 
 Camera/landmark suggestions fit Phase 2 because they make existing altitude and upgrade mechanics perceptible. They do not require a Phase 3 milestone system. Further mechanism expansion should wait until this existing loop feels satisfying.
+
+## Luna presentation/usability implementation
+
+The scoped correction is implemented in commit `07c205d` on `codex/phase-2-playtest-revisions`. It does not change `opening-v2`, the approved Credits curve, the seeded variance model or the Ignition balance. The separate 3-second / 12-Credit Ignition candidate remains deferred for a versioned follow-up.
+
+Implemented behavior:
+
+- `src/presentation/worldCamera.ts` uses a fixed 300 m world span and follows the highest altitude actually presented so far. The ruler, trace, current guide, personal-best line, rocket fin-tip anchor and authored scenery all use the same transform; no predicted apogee or future trace is used for framing.
+- `RocketCanvas` now includes persistent launchpad/service-tower artwork, authored cloud layers and a labeled offscreen launchpad reference. The world scale stays constant as higher flights translate the view.
+- `src/presentation/rocketAppearance.ts` gives Engine, Fuel Tank and Airframe distinct cumulative silhouette signals while preserving the physical altitude anchor. Completed flights retain their historical recipe and framing after a purchase; the next paid launch uses the new artwork.
+- The header exposes `Settings` and `New game`. Settings opens and scrolls into view, while New game presents Export save, Cancel and confirmed Reset progress actions. Purchase confirmation appears beside the purchased card. Result copy now says `Personal best` and `Flight time`.
+
+Verification for this correction: 56 unit tests, typecheck, root production build, unchanged balance report, 5 local browser tests and 2 Pages-subpath browser tests pass. A real local browser session confirmed ignition-to-flight presentation, a completed starter flight, Engine/Fuel visual progression, camera translation beyond the initial band, the offscreen launchpad indicator, purchase-preserved completed-flight framing and the visible Settings/New game controls. Final live Pages verification and Phase 2 acceptance remain pending merge/deployment and Astra review.
