@@ -1,8 +1,10 @@
 # Balance framework — opening-v2
 
+> Current playtest decision: two human sessions are recorded in [PHASE_2_PLAYTEST_REVISIONS.md](PHASE_2_PLAYTEST_REVISIONS.md). Final acceptance is held for its camera, scenery, upgrade-art and reset-discoverability improvements. These are the next implementation changes, not a claim that the live build already contains them. Ignition tuning remains a modeled candidate with deployed-save compatibility requirements.
+
 > Phase 2 integration deployed (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff. Runtime configuration is `opening-v2` with `vertical-v1.1`; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the integrated controller/UI deployment. Final human pacing review is pending. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
 
-Status: measured Phase 2 deployed configuration; automated/live-browser checks pass, with human pacing sessions pending. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
+Status: measured Phase 2 deployed configuration; automated/live-browser checks pass, with playtest-driven revisions pending. Machine-readable values live in [balance/opening.json](../balance/opening.json). Formulas here are normative; tables are rounded outputs, not a second editable configuration source. Any formula/config change must regenerate [balance-report.json](balance-report.json) and identify its version/provenance.
 
 ## Starter rocket
 

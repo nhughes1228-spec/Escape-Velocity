@@ -1,5 +1,7 @@
 # Escape Velocity — game design
 
+> Current playtest decision: two human sessions are recorded in [PHASE_2_PLAYTEST_REVISIONS.md](PHASE_2_PLAYTEST_REVISIONS.md). Final acceptance is held for its camera, scenery, upgrade-art and reset-discoverability improvements. These are the next implementation changes, not a claim that the live build already contains them. Ignition tuning remains a modeled candidate with deployed-save compatibility requirements.
+
 > Phase 2 integration deployed (2026-09-05): [PHASE_2_SPEC.md](PHASE_2_SPEC.md) remains the authoritative design handoff; [PHASE_2_IMPLEMENTATION.md](PHASE_2_IMPLEMENTATION.md) records the controller, UI, domain and save implementation. The approved Phase 2 opening is live at the public repository-subpath URL, pending final human pacing review. The handoff explicitly supersedes earlier Ignition, replay and save proposals; unchanged physical formulas and nominal fixtures remain valid.
 
 Status: opening rules plus deployed Phase 2 integration, 2026-09-05. Later eras are direction, not authorized implementation. See [ROADMAP](ROADMAP.md) for current scope and [BALANCE](BALANCE.md) for measured versus provisional numbers.
